@@ -1,10 +1,16 @@
 import os
+import pickle
 import random
 from pathlib import Path
 
 import numpy as np
 import torch
 from scipy.io.wavfile import read
+
+
+def load_object(path):
+    with open(path, 'rb') as handle:
+        return pickle.load(handle)
 
 
 def get_mask_from_lengths(lengths):

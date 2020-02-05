@@ -14,7 +14,7 @@ cudnn_benchmark: False
 ignore_layers: ['embedding.weight']
 
 ################################
-# Data Parameters             #
+# Data Parameters              #
 ################################
 load_mel_from_disk: False
 data_directory: '../data/LJSpeech-1.1'

@@ -1,5 +1,6 @@
 import inspect
 from pathlib import Path
+from typing import Dict, Tuple, Any
 
 import numpy as np
 import torch
@@ -12,15 +13,15 @@ from tacotron2.layers import TacotronSTFT
 from tacotron2.utils import load_wav_to_torch, load_filepaths_and_text
 
 
-class TextMelLoader(torch.utils.data.Dataset):
+class TextMelDataset(torch.utils.data.Dataset):
     """Texts and mel-spectrograms dataset
-    1) loads audio,text pairs
+    1) loads audio, text pairs
     2) normalizes text and converts them to sequences of one-hot vectors
     3) computes mel-spectrograms from audio files.
     """
 
     def __init__(self, meta_file_path: Path, tokenizer_class_name: str, load_mel_from_disk: bool, max_wav_value,
-                 sampling_rate,  filter_length, hop_length, win_length, n_mel_channels, mel_fmin, mel_fmax,
+                 sampling_rate, filter_length, hop_length, win_length, n_mel_channels, mel_fmin, mel_fmax,
                  n_frames_per_step):
         """
         :param meta_file_path: Path, value separated text meta-file which has two fields:
@@ -60,7 +61,7 @@ class TextMelLoader(torch.utils.data.Dataset):
         )
 
     @classmethod
-    def from_hparams(cls, hparams: HParams, is_valid: bool) -> 'TextMelLoader':
+    def from_hparams(cls, hparams: HParams, is_valid: bool) -> 'TextMelDataset':
         """Build class instance from hparams map
         If you create dataset instance via this method, make sure, that meta_train.txt (if is_valid==False) or
             meta_valid.txt (is is_valid==True) exists in the dataset directory
@@ -68,24 +69,31 @@ class TextMelLoader(torch.utils.data.Dataset):
         :param is_valid: bool, get validation dataset or not (train)
         :return: TextMelLoader, dataset instance
         """
-        param_names = inspect.getfullargspec(TextMelLoader.__init__).args
+        param_names = inspect.getfullargspec(TextMelDataset.__init__).args
         params = dict()
         for param_name in param_names:
-            if param_name == 'self':
-                continue
-            elif param_name == 'meta_file_path':
-                data_directory = Path(hparams.data_directory)
-                postfix = 'valid' if is_valid else 'train'
-                value = data_directory / f'meta_{postfix}.txt'
-                if not value.is_file():
-                    raise FileNotFoundError(f"Can't find {str(value)} file. Make sure, that file exists")
-            else:
-                value = hparams[param_name]
+            param_value = cls._get_param_value(param_name=param_name, hparams=hparams, is_valid=is_valid)
 
-            params[param_name] = value
+            if param_value is not None:
+                params[param_name] = param_value
 
-        obj = TextMelLoader(**params)
+        obj = TextMelDataset(**params)
         return obj
+
+    @staticmethod
+    def _get_param_value(param_name: str, hparams: HParams, is_valid: bool) -> Any:
+        if param_name == 'self':
+            value = None
+        elif param_name == 'meta_file_path':
+            data_directory = Path(hparams.data_directory)
+            postfix = 'valid' if is_valid else 'train'
+            value = data_directory / f'meta_{postfix}.txt'
+            if not value.is_file():
+                raise FileNotFoundError(f"Can't find {str(value)} file. Make sure, that file exists")
+        else:
+            value = hparams[param_name]
+
+        return value
 
     def get_mel_text_pair(self, audiopath_and_text):
         # separate filename and text
@@ -125,8 +133,11 @@ class TextMelLoader(torch.utils.data.Dataset):
 
     @staticmethod
     def get_collate_function(pad_id, n_frames_per_step):
-        def collate(batch):
-            """Collate's training batch from normalized text and mel-spectrogram"""
+        def collate(batch) -> Dict[str, Tuple]:
+            """Collate's training batch from normalized text and mel-spectrogram
+
+            :return: dict, batch dictionary with 'x', 'y' fields, each of which contains tuple of tensors
+            """
             # Right zero-pad all one-hot text sequences to max input length
             input_lengths, ids_sorted_decreasing = torch.sort(
                 torch.LongTensor([len(x[0]) for x in batch]),
@@ -158,7 +169,14 @@ class TextMelLoader(torch.utils.data.Dataset):
                 gate_padded[i, mel.size(1) - 1:] = 1
                 output_lengths[i] = mel.size(1)
 
-            return text_padded, input_lengths, mel_padded, gate_padded, output_lengths
+            max_len = torch.max(input_lengths.data).item()
+
+            batch_dict = {
+                "x": (text_padded, input_lengths, mel_padded, max_len, output_lengths),
+                "y": (mel_padded, gate_padded)
+            }
+
+            return batch_dict
 
         return collate
 

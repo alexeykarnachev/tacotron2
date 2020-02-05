@@ -8,7 +8,7 @@ import torch
 import torch.distributed as dist
 from numpy import finfo
 
-from tacotron2.datasets.TextMelLoader import TextMelLoader
+from tacotron2.datasets.TextMelDataset import TextMelDataset
 from tacotron2.distributed import apply_gradient_allreduce
 from tacotron2.hparams import HParams
 from tacotron2.logger import Tacotron2Logger
@@ -43,7 +43,7 @@ def prepare_dataloaders(hparams):
     # Get data, data loaders and collate function ready
     dataloaders = []
     for flag in [True, False]:
-        dataset = TextMelLoader.from_hparams(hparams, is_valid=flag)
+        dataset = TextMelDataset.from_hparams(hparams, is_valid=flag)
         dataloader = dataset.get_data_loader(hparams.batch_size, hparams.is_distributed, shuffle=not flag)
         dataloaders.append(dataloader)
 
@@ -115,10 +115,9 @@ def validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, dist
     with torch.no_grad():
 
         val_loss = 0.0
-        for i, batch in enumerate(valid_dataloader):
-            x, y = model.parse_batch(batch)
-            y_pred = model(x)
-            loss = criterion(y_pred, y)
+        for i, batch_dict in enumerate(valid_dataloader):
+            y_pred = model(batch_dict)
+            loss = criterion(y_pred, batch_dict['y'])
             if distributed_run:
                 reduced_val_loss = reduce_tensor(loss.data, n_gpus).item()
             else:
@@ -191,16 +190,15 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     # ================ MAIN TRAINNIG LOOP! ===================
     for epoch in range(epoch_offset, hparams.epochs):
         print("Epoch: {}".format(epoch))
-        for i, batch in enumerate(train_dataloader):
+        for i, batch_dict in enumerate(train_dataloader):
             start = time.perf_counter()
             for param_group in optimizer.param_groups:
                 param_group['lr'] = learning_rate
 
             model.zero_grad()
-            x, y = model.parse_batch(batch)
-            y_pred = model(x)
+            y_pred = model(batch_dict)
+            loss = criterion(y_pred, batch_dict['y'])
 
-            loss = criterion(y_pred, y)
             if hparams.distributed_run:
                 reduced_loss = reduce_tensor(loss.data, n_gpus).item()
             else:

@@ -481,19 +481,6 @@ class Tacotron2(nn.Module):
         self.decoder = Decoder(hparams)
         self.postnet = Postnet(hparams)
 
-    def parse_batch(self, batch):
-        text_padded, input_lengths, mel_padded, gate_padded, output_lengths = batch
-        text_padded = text_padded.to(self.device)
-        input_lengths = input_lengths.to(self.device)
-        max_len = torch.max(input_lengths.data).item()
-        mel_padded = mel_padded.to(self.device)
-        gate_padded = gate_padded.to(self.device)
-        output_lengths = output_lengths.to(self.device)
-
-        return (
-            (text_padded, input_lengths, mel_padded, max_len, output_lengths),
-            (mel_padded, gate_padded))
-
     def parse_output(self, outputs, output_lengths=None):
         if self.mask_padding and output_lengths is not None:
             mask = ~get_mask_from_lengths(output_lengths)
