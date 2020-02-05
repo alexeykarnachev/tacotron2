@@ -244,6 +244,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--output_directory', type=str, help='Directory to save checkpoints')
     parser.add_argument('-l', '--log_directory', type=str, help='Directory to save tensorboard logs')
+    parser.add_argument('-g', '--gpu', type=int, default=0, required=False, help='Gpu to train in')
     parser.add_argument('-c', '--checkpoint_path', type=str, default=None, required=False, help='Checkpoint path')
     parser.add_argument('--warm_start', action='store_true', help='Load model weights only, ignore specified layers')
     parser.add_argument('--n_gpus', type=int, default=1, required=False, help='Number of gpus')
@@ -252,6 +253,8 @@ if __name__ == '__main__':
     parser.add_argument('--hparams_file', type=Path, required=False, help='Path to the hyper parameters yaml file')
 
     args = parser.parse_args()
+
+    torch.cuda.set_device(args.gpu)
 
     hparams = HParams.from_yaml(args.hparams_file)
 
