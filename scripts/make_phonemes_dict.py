@@ -32,4 +32,4 @@ if __name__ == '__main__':
 
     with open(args.output, 'w') as file:
         for k, v in phonemes_dict.items():
-            file.write(f"{k} {' '.join([x for x in v])}")
+            file.write(f"{k} {' '.join([x for x in v])}" + "\n")
