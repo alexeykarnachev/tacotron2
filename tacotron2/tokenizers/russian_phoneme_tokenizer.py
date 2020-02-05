@@ -2,8 +2,7 @@ import re
 from pathlib import Path
 from typing import List, Dict
 
-from pandas.core.common import flatten
-from russian_g2p.Transcription import Transcription
+from russian_g2p.Grapheme2Phoneme import Grapheme2Phoneme
 from russian_g2p.modes.Phonetics import Phonetics
 
 from tacotron2.tokenizers._tokenizer import Tokenizer
@@ -35,7 +34,7 @@ class RussianPhonemeTokenizer(Tokenizer):
 
         self.word2phonemes = self._read_phonemes_corpus(Path(__file__).parent / 'data/russian_phonemes_corpus.txt')
         self.word_regexp = re.compile(r'[А-яЁё]+')
-        self.transcriptor = Transcription()
+        self.transcriptor = Grapheme2Phoneme()
 
     @staticmethod
     def _read_phonemes_corpus(file_path: Path) -> Dict[str, List[str]]:
@@ -64,11 +63,11 @@ class RussianPhonemeTokenizer(Tokenizer):
 
         tokens = self._tokenize(text)
         token_ids = [self.token2id[token] for token in tokens]
+
         return token_ids
 
     def _tokenize(self, text: str) -> List[str]:
-        """Tokenize text on phonemes. Uses dictionary if word is presented, or calculate phonemes and add new word to
-        dictionary (to not to calculate next time)
+        """Tokenize text on phonemes. Uses dictionary if word is presented, or calculate phonemes in runntime
 
         :param text: str, input text
         :return: list, of phonemes
@@ -81,8 +80,7 @@ class RussianPhonemeTokenizer(Tokenizer):
             matched_word_tokens = self.word2phonemes.get(matched_word, None)
 
             if matched_word_tokens is None:
-                matched_word_tokens = flatten(self.transcriptor.transcribe([matched_word]))
-                self.word2phonemes[matched_word] = matched_word_tokens
+                matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word)
 
             if i_word_match != len(word_matches) - 1:
                 matched_word_tokens.append(' ')

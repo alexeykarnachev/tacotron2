@@ -2,7 +2,7 @@
 # Experiment Parameters        #
 ################################
 epochs: 500
-iters_per_checkpoint: 10000
+iters_per_checkpoint: 3
 seed: 1234
 dynamic_loss_scaling: True
 fp16_run: False
@@ -12,22 +12,21 @@ dist_url: "tcp://localhost:54321"
 cudnn_enabled: True
 cudnn_benchmark: False
 ignore_layers: ['embedding.weight']
+model_class_name: 'Tacotron2Embedded'
+device: 'cuda'
 
 ################################
 # Data Parameters              #
 ################################
 load_mel_from_disk: False
-data_directory: '../data/LJSpeech-1.1'
-tokenizer_class_name: 'EnglishGraphemeTokenizer'
-
-#training_files: '../data/LJSpeech-1.1/meta_train.txt'
-#validation_files: '../data/LJSpeech-1.1/meta_valid.txt'
+data_directory: '../data/dataset_dummy'
+tokenizer_class_name: 'RussianPhonemeTokenizer'
 
 ################################
 # Audio Parameters             #
 ################################
 max_wav_value: 32768.0
-sampling_rate: 22050
+sampling_rate: 16000
 filter_length: 1024
 hop_length: 256
 win_length: 1024
@@ -74,5 +73,5 @@ use_saved_learning_rate: False
 learning_rate: 1e-3
 weight_decay: 1e-6
 grad_clip_thresh: 1.0
-batch_size: 12
+batch_size: 4
 mask_padding: True  # set model's padded outputs to padded values

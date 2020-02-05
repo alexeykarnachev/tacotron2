@@ -27,10 +27,9 @@ def load_wav_to_torch(full_path):
 
 def load_filepaths_and_text(meta_file_path: Path, split="|"):
     meta_file_path = Path(meta_file_path)
-    root_dir = meta_file_path.parent
     with meta_file_path.open(encoding='utf-8') as f:
         filepaths_and_text = [line.strip().split(split) for line in f]
-        filepaths_and_text = [[str(root_dir / x[0]), x[1]] for x in filepaths_and_text]
+        filepaths_and_text = [[str(x[0]), x[1]] for x in filepaths_and_text]
 
     return filepaths_and_text
 
@@ -39,10 +38,17 @@ def to_device(inp, device):
     if hasattr(inp, 'to'):
         inp = inp.to(device)
     else:
-        for i in range(len(inp)):
-            inp[i] = to_device(inp[i], device)
+        try:
+            for i in range(len(inp)):
+                inp[i] = to_device(inp[i], device)
+        except TypeError:
+            pass
 
     return inp
+
+
+def to_device_dict(inp: dict, device):
+    return {k: to_device(v, device) for k, v in inp.items()}
 
 
 def seed_everything(seed):

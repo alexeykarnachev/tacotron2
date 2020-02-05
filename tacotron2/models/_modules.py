@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from tacotron2.models.layers import ConvNorm, LinearNorm
+from tacotron2.models._layers import ConvNorm, LinearNorm
 from tacotron2.utils import get_mask_from_lengths
 
 
@@ -206,7 +206,7 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.n_mel_channels = hparams.n_mel_channels
         self.n_frames_per_step = hparams.n_frames_per_step
-        self.encoder_embedding_dim = hparams.encoder_embedding_dim + hparams.speaker_embedding_dim
+        self.encoder_embedding_dim = hparams.encoder_embedding_dim + hparams.get('sample_embedding_dim', 0)
         self.attention_rnn_dim = hparams.attention_rnn_dim
         self.decoder_rnn_dim = hparams.decoder_rnn_dim
         self.prenet_dim = hparams.prenet_dim

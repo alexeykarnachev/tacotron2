@@ -1,7 +1,7 @@
 from math import sqrt
 from torch import nn
 
-from tacotron2.models.modules import Encoder, Decoder, Postnet
+from tacotron2.models._modules import Encoder, Decoder, Postnet
 from tacotron2.utils import get_mask_from_lengths
 
 

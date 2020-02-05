@@ -4,7 +4,7 @@ from pydoc import locate
 class Factory:
     @staticmethod
     def get_object(class_path, *args, **kwargs):
-        cls = locate(class_path)
+        cls = Factory.get_class(class_path)
         obj = cls(*args, **kwargs)
         return obj
 

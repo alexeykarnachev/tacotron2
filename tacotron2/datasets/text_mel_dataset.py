@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, DistributedSampler
 
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
-from tacotron2.layers import TacotronSTFT
+from tacotron2.models._layers import TacotronSTFT
 from tacotron2.utils import load_wav_to_torch, load_filepaths_and_text
 
 
@@ -42,6 +42,7 @@ class TextMelDataset(torch.utils.data.Dataset):
         :param n_frames_per_step:
         """
 
+        self.root_dir = meta_file_path.parent
         self.audiopaths_and_text = load_filepaths_and_text(meta_file_path)
         self.tokenizer = Factory.get_object(f'tacotron2.tokenizers.{tokenizer_class_name}')
 
@@ -61,7 +62,7 @@ class TextMelDataset(torch.utils.data.Dataset):
         )
 
     @classmethod
-    def from_hparams(cls, hparams: HParams, is_valid: bool) -> 'TextMelDataset':
+    def from_hparams(cls, hparams: HParams, is_valid: bool):
         """Build class instance from hparams map
         If you create dataset instance via this method, make sure, that meta_train.txt (if is_valid==False) or
             meta_valid.txt (is is_valid==True) exists in the dataset directory
@@ -69,7 +70,7 @@ class TextMelDataset(torch.utils.data.Dataset):
         :param is_valid: bool, get validation dataset or not (train)
         :return: TextMelLoader, dataset instance
         """
-        param_names = inspect.getfullargspec(TextMelDataset.__init__).args
+        param_names = inspect.getfullargspec(cls.__init__).args
         params = dict()
         for param_name in param_names:
             param_value = cls._get_param_value(param_name=param_name, hparams=hparams, is_valid=is_valid)
@@ -77,7 +78,7 @@ class TextMelDataset(torch.utils.data.Dataset):
             if param_value is not None:
                 params[param_name] = param_value
 
-        obj = TextMelDataset(**params)
+        obj = cls(**params)
         return obj
 
     @staticmethod
@@ -95,22 +96,22 @@ class TextMelDataset(torch.utils.data.Dataset):
 
         return value
 
-    def get_mel_text_pair(self, audiopath_and_text):
-        # separate filename and text
-        audiopath, text = audiopath_and_text[0], audiopath_and_text[1]
+    def get_mel_text_pair(self, audiopath, text):
         text = self.get_text(text)
         mel = self.get_mel(audiopath)
-        return (text, mel)
+        return [text, mel]
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
             audio, sampling_rate = load_wav_to_torch(filename)
+
             if sampling_rate != self.stft.sampling_rate:
                 raise ValueError("{} {} SR doesn't match target {} SR".format(
                     sampling_rate, self.stft.sampling_rate))
             audio_norm = audio / self.max_wav_value
             audio_norm = audio_norm.unsqueeze(0)
             audio_norm = torch.autograd.Variable(audio_norm, requires_grad=False)
+
             melspec = self.stft.mel_spectrogram(audio_norm)
             melspec = torch.squeeze(melspec, 0)
         else:
@@ -126,8 +127,10 @@ class TextMelDataset(torch.utils.data.Dataset):
         return text_norm
 
     def __getitem__(self, index):
-        text, mel = self.get_mel_text_pair(self.audiopaths_and_text[index])
-        return text, mel
+        file_path, text = self.audiopaths_and_text[index]
+        file_path = self.root_dir / file_path
+        item = self.get_mel_text_pair(file_path, text)
+        return item
 
     def __len__(self):
         return len(self.audiopaths_and_text)
@@ -208,8 +211,8 @@ class TextMelCollate:
         max_len = torch.max(input_lengths.data).item()
 
         batch_dict = {
-            "x": (text_padded, input_lengths, mel_padded, max_len, output_lengths),
-            "y": (mel_padded, gate_padded)
+            "x": [text_padded, input_lengths, mel_padded, max_len, output_lengths],
+            "y": [mel_padded, gate_padded]
         }
 
         return batch_dict

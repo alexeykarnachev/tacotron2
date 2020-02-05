@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import Any
 
-from tacotron2.datasets.TextMelDataset import TextMelDataset, TextMelCollate
+import torch
+
+from tacotron2.datasets.text_mel_dataset import TextMelDataset, TextMelCollate
 from tacotron2.hparams import HParams
 from tacotron2.utils import load_object
 
@@ -41,11 +43,11 @@ class TextMelEmbeddingDataset(TextMelDataset):
         super().__init__(meta_file_path, tokenizer_class_name, load_mel_from_disk, max_wav_value, sampling_rate,
                          filter_length, hop_length, win_length, n_mel_channels, mel_fmin, mel_fmax, n_frames_per_step)
 
-        self.embeddings_dict = self._get_embeddings_dict()
-        self.embeddings_dim = self.embeddings_dict['embeddings'].shape[1]
+        self.embeddings_dict = self._get_embeddings_dict(embeddings_file_path)
+        self.sample_embedding_dim = self.embeddings_dict['embeddings'].shape[1]
 
-    def _get_embeddings_dict(self):
-        embeddings_dict = load_object(self.embeddings_file_path)
+    def _get_embeddings_dict(self, embeddings_file_path):
+        embeddings_dict = load_object(embeddings_file_path)
         used_indexes = []
         used_file_paths = []
 
@@ -71,13 +73,13 @@ class TextMelEmbeddingDataset(TextMelDataset):
             data_directory = Path(hparams.data_directory)
             value = data_directory / f'wav_embeddings.pkl'
         else:
-            value = super()._get_param_value(param_name=param_name, hparams=hparams, is_valid=is_valid)
+            value = TextMelDataset._get_param_value(param_name=param_name, hparams=hparams, is_valid=is_valid)
 
         return value
 
     def __getitem__(self, index):
         file_path, text = self.audiopaths_and_text[index]
-        item = self.get_mel_text_pair((file_path, text))
+        item = self.get_mel_text_pair(self.root_dir / file_path, text)
         wav_embedding_index = self.embeddings_dict['filename2id'][str(file_path)]
         wav_embedding = self.embeddings_dict['embeddings'][wav_embedding_index]
         item.append(wav_embedding)
@@ -99,6 +101,6 @@ class TextMelEmbeddingsCollate(TextMelCollate):
         """
         text, mel, emb = list(zip(*batch))
         batch_dict = super().__call__(zip(text, mel))
+        emb = torch.FloatTensor(emb)
         batch_dict["x"].append(emb)
-
         return batch_dict

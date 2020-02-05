@@ -1,11 +1,6 @@
 import torch
-from math import sqrt
-from torch import nn
 
-
-from tacotron2.models.modules import Encoder, Decoder, Postnet
 from tacotron2.models.tacotron2 import Tacotron2
-from tacotron2.utils import get_mask_from_lengths
 
 
 class Tacotron2Embedded(Tacotron2):
@@ -26,9 +21,10 @@ class Tacotron2Embedded(Tacotron2):
         encoder_outputs_wide = encoder_outputs.size(1)
 
         embedded_speaker = torch.cat(
-            encoder_outputs_wide * [speaker_embeddings],
+            encoder_outputs_wide * [speaker_embeddings.unsqueeze(1)],
             dim=1
         )
+
         encoder_outputs = torch.cat([encoder_outputs, embedded_speaker], dim=2)
 
         mel_outputs, gate_outputs, alignments = self.decoder(

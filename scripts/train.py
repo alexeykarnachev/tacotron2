@@ -2,19 +2,21 @@ import argparse
 import math
 import os
 import time
+import warnings
 from pathlib import Path
 
 import torch
 import torch.distributed as dist
 from numpy import finfo
 
-from tacotron2.datasets.TextMelDataset import TextMelDataset
 from tacotron2.distributed import apply_gradient_allreduce
+from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.logger import Tacotron2Logger
 from tacotron2.loss_function import Tacotron2Loss
-from tacotron2.model import Tacotron2
-from tacotron2.utils import seed_everything
+from tacotron2.utils import seed_everything, to_device_dict
+
+warnings.filterwarnings("ignore")
 
 
 def reduce_tensor(tensor, n_gpus):
@@ -40,10 +42,21 @@ def init_distributed(hparams, n_gpus, rank, group_name):
 
 
 def prepare_dataloaders(hparams):
-    # Get data, data loaders and collate function ready
+    model2dataset = {
+        'Tacotron2': 'TextMelDataset',
+        'Tacotron2Embedded': 'TextMelEmbeddingDataset'
+    }
+
+    dataset_class_name = model2dataset[hparams.model_class_name]
+    dataset_class = Factory.get_class(f'tacotron2.datasets.{dataset_class_name}')
+
     dataloaders = []
     for flag in [True, False]:
-        dataset = TextMelDataset.from_hparams(hparams, is_valid=flag)
+        dataset = dataset_class.from_hparams(hparams, is_valid=flag)
+
+        # TODO: get this sample embedding dimension automatically in the model???
+        hparams.sample_embedding_dim = getattr(dataset, 'sample_embedding_dim', 0)
+
         dataloader = dataset.get_data_loader(hparams.batch_size, hparams.is_distributed, shuffle=not flag)
         dataloaders.append(dataloader)
 
@@ -62,7 +75,10 @@ def prepare_directories_and_logger(output_directory, log_directory, rank):
 
 
 def load_model(hparams):
-    model = Tacotron2(hparams).cuda()
+    model_class_name = hparams.model_class_name
+    model_cls = Factory.get_class(f'tacotron2.models.{model_class_name}')
+    model = model_cls(hparams).to(hparams.device)
+
     if hparams.fp16_run:
         model.decoder.attention_layer.score_mask_value = finfo('float16').min
 
@@ -109,13 +125,14 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath):
                 'learning_rate': learning_rate}, filepath)
 
 
-def validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, distributed_run, rank):
+def validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, distributed_run, rank, device):
     """Handles all the validation scoring and printing"""
     model.eval()
     with torch.no_grad():
 
         val_loss = 0.0
         for i, batch_dict in enumerate(valid_dataloader):
+            batch_dict = to_device_dict(batch_dict, device=device)
             y_pred = model(batch_dict)
             loss = criterion(y_pred, batch_dict['y'])
             if distributed_run:
@@ -128,7 +145,7 @@ def validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, dist
     model.train()
     if rank == 0:
         print("Validation loss {}: {:9f}  ".format(iteration, val_loss))
-        logger.log_validation(val_loss, model, y, y_pred, iteration)
+        logger.log_validation(val_loss, model, batch_dict['y'], y_pred, iteration)
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
@@ -191,6 +208,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     for epoch in range(epoch_offset, hparams.epochs):
         print("Epoch: {}".format(epoch))
         for i, batch_dict in enumerate(train_dataloader):
+            batch_dict = to_device_dict(batch_dict, device=hparams.device)
             start = time.perf_counter()
             for param_group in optimizer.param_groups:
                 param_group['lr'] = learning_rate
@@ -230,7 +248,8 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
             if not is_overflow and (iteration % hparams.iters_per_checkpoint == 0):
 
-                validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, hparams.distributed_run, rank)
+                validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, hparams.distributed_run, rank,
+                         hparams.device)
                 if rank == 0:
                     checkpoint_path = os.path.join(
                         output_directory, "checkpoint_{}".format(iteration))
