@@ -1,11 +1,7 @@
 from pathlib import Path
-from typing import Dict, Tuple, Any
+from typing import Any
 
-import torch
-import torch.utils.data
-from torch.utils.data import DataLoader, DistributedSampler
-
-from tacotron2.datasets.TextMelDataset import TextMelDataset
+from tacotron2.datasets.TextMelDataset import TextMelDataset, TextMelCollate
 from tacotron2.hparams import HParams
 from tacotron2.utils import load_object
 
@@ -87,80 +83,22 @@ class TextMelEmbeddingDataset(TextMelDataset):
         item.append(wav_embedding)
         return item
 
-    def __len__(self):
-        return len(self.audiopaths_and_text)
-
     @staticmethod
     def get_collate_function(pad_id, n_frames_per_step):
-        def collate(batch) -> Dict[str, Tuple]:
-            """Collate's training batch from normalized text and mel-spectrogram
-            
-            :return: dict, batch dictionary with 'x', 'y' fields, each of which contains tuple of tensors
-            """
-            # Right zero-pad all one-hot text sequences to max input length
-            input_lengths, ids_sorted_decreasing = torch.sort(
-                torch.LongTensor([len(x[0]) for x in batch]),
-                dim=0, descending=True)
-            max_input_len = input_lengths[0]
+        return TextMelEmbeddingsCollate(pad_id, n_frames_per_step)
 
-            text_padded = torch.LongTensor(len(batch), max_input_len)
-            text_padded.fill_(pad_id)
-            for i in range(len(ids_sorted_decreasing)):
-                text = batch[ids_sorted_decreasing[i]][0]
-                text_padded[i, :text.size(0)] = text
 
-            # Right zero-pad mel-spec
-            num_mels = batch[0][1].size(0)
-            max_target_len = max([x[1].size(1) for x in batch])
-            if max_target_len % n_frames_per_step != 0:
-                max_target_len += n_frames_per_step - max_target_len % n_frames_per_step
-                assert max_target_len % n_frames_per_step == 0
+class TextMelEmbeddingsCollate(TextMelCollate):
+    def __init__(self, pad_id, n_frames_per_step):
+        super().__init__(pad_id, n_frames_per_step)
 
-            # include mel padded and gate padded
-            mel_padded = torch.FloatTensor(len(batch), num_mels, max_target_len)
-            mel_padded.zero_()
-            gate_padded = torch.FloatTensor(len(batch), max_target_len)
-            gate_padded.zero_()
-            output_lengths = torch.LongTensor(len(batch))
-            for i in range(len(ids_sorted_decreasing)):
-                mel = batch[ids_sorted_decreasing[i]][1]
-                mel_padded[i, :, :mel.size(1)] = mel
-                gate_padded[i, mel.size(1) - 1:] = 1
-                output_lengths[i] = mel.size(1)
+    def __call__(self, batch):
+        """Collate's training batch from normalized text and mel-spectrogram
 
-            max_len = torch.max(input_lengths.data).item()
-
-            batch_dict = {
-                "x": (text_padded, input_lengths, mel_padded, max_len, output_lengths),
-                "y": (mel_padded, gate_padded)
-            }
-
-            return batch_dict
-
-        return collate
-
-    def get_data_loader(self, batch_size: int, is_distributed: bool, shuffle: bool):
-        """Construct DataLoader object from the Dataset object
-
-        :param is_distributed: bool, set distributed sampler or not
-        :param batch_size: int, batch size
-        :param shuffle: bool, shuffle data or not
-        :return: DataLoader
+        :return: dict, batch dictionary with 'x', 'y' fields, each of which contains tuple of tensors
         """
+        text, mel, emb = list(zip(*batch))
+        batch_dict = super().__call__(zip(text, mel))
+        batch_dict["x"].append(emb)
 
-        sampler = DistributedSampler(self, shuffle=shuffle) if is_distributed else None
-        shuffle = shuffle if sampler is None else False
-
-        collate_fn = self.get_collate_function(pad_id=self.tokenizer.pad_id, n_frames_per_step=self.n_frames_per_step)
-        dataloader = DataLoader(
-            self,
-            num_workers=1,
-            sampler=sampler,
-            batch_size=batch_size,
-            pin_memory=False,
-            drop_last=True,
-            collate_fn=collate_fn,
-            shuffle=shuffle
-        )
-
-        return dataloader
+        return batch_dict

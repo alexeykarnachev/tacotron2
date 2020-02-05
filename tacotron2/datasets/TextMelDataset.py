@@ -1,6 +1,6 @@
 import inspect
 from pathlib import Path
-from typing import Dict, Tuple, Any
+from typing import Any
 
 import numpy as np
 import torch
@@ -126,57 +126,15 @@ class TextMelDataset(torch.utils.data.Dataset):
         return text_norm
 
     def __getitem__(self, index):
-        return self.get_mel_text_pair(self.audiopaths_and_text[index])
+        text, mel = self.get_mel_text_pair(self.audiopaths_and_text[index])
+        return text, mel
 
     def __len__(self):
         return len(self.audiopaths_and_text)
 
     @staticmethod
     def get_collate_function(pad_id, n_frames_per_step):
-        def collate(batch) -> Dict[str, Tuple]:
-            """Collate's training batch from normalized text and mel-spectrogram
-
-            :return: dict, batch dictionary with 'x', 'y' fields, each of which contains tuple of tensors
-            """
-            # Right zero-pad all one-hot text sequences to max input length
-            input_lengths, ids_sorted_decreasing = torch.sort(
-                torch.LongTensor([len(x[0]) for x in batch]),
-                dim=0, descending=True)
-            max_input_len = input_lengths[0]
-
-            text_padded = torch.LongTensor(len(batch), max_input_len)
-            text_padded.fill_(pad_id)
-            for i in range(len(ids_sorted_decreasing)):
-                text = batch[ids_sorted_decreasing[i]][0]
-                text_padded[i, :text.size(0)] = text
-
-            # Right zero-pad mel-spec
-            num_mels = batch[0][1].size(0)
-            max_target_len = max([x[1].size(1) for x in batch])
-            if max_target_len % n_frames_per_step != 0:
-                max_target_len += n_frames_per_step - max_target_len % n_frames_per_step
-                assert max_target_len % n_frames_per_step == 0
-
-            # include mel padded and gate padded
-            mel_padded = torch.FloatTensor(len(batch), num_mels, max_target_len)
-            mel_padded.zero_()
-            gate_padded = torch.FloatTensor(len(batch), max_target_len)
-            gate_padded.zero_()
-            output_lengths = torch.LongTensor(len(batch))
-            for i in range(len(ids_sorted_decreasing)):
-                mel = batch[ids_sorted_decreasing[i]][1]
-                mel_padded[i, :, :mel.size(1)] = mel
-                gate_padded[i, mel.size(1) - 1:] = 1
-                output_lengths[i] = mel.size(1)
-
-            max_len = torch.max(input_lengths.data).item()
-
-            batch_dict = {
-                "x": (text_padded, input_lengths, mel_padded, max_len, output_lengths),
-                "y": (mel_padded, gate_padded)
-            }
-
-            return batch_dict
+        collate = TextMelCollate(pad_id=pad_id, n_frames_per_step=n_frames_per_step)
 
         return collate
 
@@ -205,3 +163,53 @@ class TextMelDataset(torch.utils.data.Dataset):
         )
 
         return dataloader
+
+
+class TextMelCollate:
+    def __init__(self, pad_id, n_frames_per_step):
+        self.pad_id = pad_id
+        self.n_frames_per_step = n_frames_per_step
+
+    def __call__(self, batch):
+        """Collate's training batch from normalized text and mel-spectrogram
+
+        :return: dict, batch dictionary with 'x', 'y' fields, each of which contains tuple of tensors
+        """
+
+        text, mel = list(zip(*batch))
+        input_lengths, ids_sorted_decreasing = torch.sort(torch.tensor([len(x) for x in text]), descending=True)
+        max_input_len = input_lengths[0]
+
+        text_padded = torch.LongTensor(len(text), max_input_len)
+        text_padded.fill_(self.pad_id)
+        for i in range(len(ids_sorted_decreasing)):
+            text_ = text[ids_sorted_decreasing[i]]
+            text_padded[i, :text_.size(0)] = text_
+
+        # Right zero-pad mel-spec
+        num_mels = mel[0].size(0)
+        max_target_len = max([x.size(1) for x in mel])
+        if max_target_len % self.n_frames_per_step != 0:
+            max_target_len += self.n_frames_per_step - max_target_len % self.n_frames_per_step
+            assert max_target_len % self.n_frames_per_step == 0
+
+        # include mel padded and gate padded
+        mel_padded = torch.FloatTensor(len(mel), num_mels, max_target_len)
+        mel_padded.zero_()
+        gate_padded = torch.FloatTensor(len(mel), max_target_len)
+        gate_padded.zero_()
+        output_lengths = torch.LongTensor(len(mel))
+        for i in range(len(ids_sorted_decreasing)):
+            mel_ = mel[ids_sorted_decreasing[i]]
+            mel_padded[i, :, :mel_.size(1)] = mel_
+            gate_padded[i, mel_.size(1) - 1:] = 1
+            output_lengths[i] = mel_.size(1)
+
+        max_len = torch.max(input_lengths.data).item()
+
+        batch_dict = {
+            "x": (text_padded, input_lengths, mel_padded, max_len, output_lengths),
+            "y": (mel_padded, gate_padded)
+        }
+
+        return batch_dict
