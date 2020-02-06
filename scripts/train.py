@@ -4,6 +4,7 @@ import os
 import time
 import warnings
 from pathlib import Path
+from tqdm import tqdm
 
 import torch
 import torch.distributed as dist
@@ -131,7 +132,7 @@ def validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, dist
     with torch.no_grad():
 
         val_loss = 0.0
-        for i, batch_dict in enumerate(valid_dataloader):
+        for i, batch_dict in tqdm(enumerate(valid_dataloader), total=len(valid_dataloader)):
             batch_dict = to_device_dict(batch_dict, device=device)
             y_pred = model(batch_dict)
             loss = criterion(y_pred, batch_dict['y'])
@@ -207,7 +208,8 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     # ================ MAIN TRAINNIG LOOP! ===================
     for epoch in range(epoch_offset, hparams.epochs):
         print("Epoch: {}".format(epoch))
-        for i, batch_dict in enumerate(train_dataloader):
+        tqdm_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
+        for i, batch_dict in tqdm_bar:
             batch_dict = to_device_dict(batch_dict, device=hparams.device)
             start = time.perf_counter()
             for param_group in optimizer.param_groups:
@@ -239,8 +241,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
             if not is_overflow and rank == 0:
                 duration = time.perf_counter() - start
-                print("Train loss {} {:.6f} Grad Norm {:.6f} {:.2f}s/it".format(
-                    iteration, reduced_loss, grad_norm, duration))
+                tqdm_bar.set_postfix_str(
+                    "Train loss {} {:.6f} Grad Norm {:.6f} {:.2f}s/it".format(
+                        iteration, reduced_loss, grad_norm, duration))
                 logger.log_training(
                     reduced_loss, grad_norm, learning_rate, duration, iteration)
 

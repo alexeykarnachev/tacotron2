@@ -1,11 +1,12 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 import torch
 
 from tacotron2.datasets.text_mel_dataset import TextMelDataset, TextMelCollate
 from tacotron2.hparams import HParams
 from tacotron2.utils import load_object
+from tacotron2.audio_preprocessors._audio_preprocessor import AudioPreprocessor
 
 
 class TextMelEmbeddingDataset(TextMelDataset):
@@ -17,7 +18,7 @@ class TextMelEmbeddingDataset(TextMelDataset):
 
     def __init__(self, meta_file_path: Path, embeddings_file_path: Path, tokenizer_class_name: str,
                  load_mel_from_disk: bool, max_wav_value, sampling_rate, filter_length, hop_length, win_length,
-                 n_mel_channels, mel_fmin, mel_fmax, n_frames_per_step):
+                 n_mel_channels, mel_fmin, mel_fmax, n_frames_per_step, audio_preprocessors: List[AudioPreprocessor]):
         """
         :param meta_file_path: Path, value separated text meta-file which has two fields:
             - relative (from the meta-file itself) path to the wav audio sample
@@ -41,7 +42,8 @@ class TextMelEmbeddingDataset(TextMelDataset):
         """
 
         super().__init__(meta_file_path, tokenizer_class_name, load_mel_from_disk, max_wav_value, sampling_rate,
-                         filter_length, hop_length, win_length, n_mel_channels, mel_fmin, mel_fmax, n_frames_per_step)
+                         filter_length, hop_length, win_length, n_mel_channels, mel_fmin, mel_fmax, n_frames_per_step,
+                         audio_preprocessors)
 
         self.embeddings_dict = self._get_embeddings_dict(embeddings_file_path)
         self.sample_embedding_dim = self.embeddings_dict['embeddings'].shape[1]

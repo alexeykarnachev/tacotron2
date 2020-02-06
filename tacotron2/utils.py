@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from scipy.io.wavfile import read
 
 
 def load_object(path):
@@ -18,11 +17,6 @@ def get_mask_from_lengths(lengths):
     ids = torch.LongTensor(range(0, max_len)).to(lengths.device)
     mask = (ids < lengths.unsqueeze(1)).bool()
     return mask
-
-
-def load_wav_to_torch(full_path):
-    sampling_rate, data = read(full_path)
-    return torch.FloatTensor(data), sampling_rate
 
 
 def load_filepaths_and_text(meta_file_path: Path, split="|"):
