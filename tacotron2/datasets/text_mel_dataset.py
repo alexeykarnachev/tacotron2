@@ -12,7 +12,7 @@ from scipy.io.wavfile import read
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.models._layers import TacotronSTFT
-from tacotron2.utils import load_wav_to_torch, load_filepaths_and_text
+from tacotron2.utils import load_filepaths_and_text
 
 
 class TextMelDataset(torch.utils.data.Dataset):

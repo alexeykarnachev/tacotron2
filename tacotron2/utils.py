@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from scipy.io.wavfile import read
 
 
 def load_object(path):
