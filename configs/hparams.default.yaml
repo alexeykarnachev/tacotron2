@@ -27,7 +27,7 @@ tokenizer_class_name: 'RussianPhonemeTokenizer'
 ################################
 audio_preprocessors:
   SilenceTrimmer:
-    db_threshhold: 45
+    db_threshold: 45
 
 ################################
 # Audio Parameters             #

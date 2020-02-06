@@ -1,1 +1,1 @@
-from tacotron2.audio_preprocessors.SilenceTrimmer import SilenceTrimmer
+from tacotron2.audio_preprocessors.silence_trimmer import SilenceTrimmer
