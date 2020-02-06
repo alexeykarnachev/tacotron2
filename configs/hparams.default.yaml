@@ -23,6 +23,13 @@ data_directory: '../data/dummy'
 tokenizer_class_name: 'RussianPhonemeTokenizer'
 
 ################################
+# Data Parameters              #
+################################
+audio_preprocessors:
+  SilenceTrimmer:
+    db_threshhold: 45
+
+################################
 # Audio Parameters             #
 ################################
 max_wav_value: 32768.0

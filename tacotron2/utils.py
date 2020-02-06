@@ -20,11 +20,6 @@ def get_mask_from_lengths(lengths):
     return mask
 
 
-def load_wav_to_torch(full_path):
-    sampling_rate, data = read(full_path)
-    return torch.FloatTensor(data), sampling_rate
-
-
 def load_filepaths_and_text(meta_file_path: Path, split="|"):
     meta_file_path = Path(meta_file_path)
     with meta_file_path.open(encoding='utf-8') as f:

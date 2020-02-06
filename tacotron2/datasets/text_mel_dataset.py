@@ -1,11 +1,13 @@
 import inspect
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 import numpy as np
 import torch
 import torch.utils.data
 from torch.utils.data import DataLoader, DistributedSampler
+
+from scipy.io.wavfile import read
 
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
@@ -22,7 +24,7 @@ class TextMelDataset(torch.utils.data.Dataset):
 
     def __init__(self, meta_file_path: Path, tokenizer_class_name: str, load_mel_from_disk: bool, max_wav_value,
                  sampling_rate, filter_length, hop_length, win_length, n_mel_channels, mel_fmin, mel_fmax,
-                 n_frames_per_step):
+                 n_frames_per_step, audio_preprocessors: List[AudioPreprocessor]):
         """
         :param meta_file_path: Path, value separated text meta-file which has two fields:
             - relative (from the meta-file itself) path to the wav audio sample
@@ -91,6 +93,11 @@ class TextMelDataset(torch.utils.data.Dataset):
             value = data_directory / f'meta_{postfix}.txt'
             if not value.is_file():
                 raise FileNotFoundError(f"Can't find {str(value)} file. Make sure, that file exists")
+        elif param_name == 'audio_preprocessors':
+            value = [
+                Factory.get_object(f'tacotron2.audio_preprocessors.{k}', **v)
+                for k, v in hparams.audio_preprocessors.items()
+            ]
         else:
             value = hparams[param_name]
 
@@ -103,7 +110,11 @@ class TextMelDataset(torch.utils.data.Dataset):
 
     def get_mel(self, filename):
         if not self.load_mel_from_disk:
-            audio, sampling_rate = load_wav_to_torch(filename)
+
+            sampling_rate, audio = read(filename)
+            for preprocessor in self.audio_preprocessors:
+                audio = preprocessor(audio)
+            audio = torch.FloatTensor(audio)
 
             if sampling_rate != self.stft.sampling_rate:
                 raise ValueError("{} {} SR doesn't match target {} SR".format(
