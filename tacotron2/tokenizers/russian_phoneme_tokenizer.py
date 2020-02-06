@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+from string import punctuation
 from typing import List, Dict
 
 from russian_g2p.Grapheme2Phoneme import Grapheme2Phoneme
@@ -13,8 +14,6 @@ class RussianPhonemeTokenizer(Tokenizer):
     """Russian phonemes-lvl tokenizer
     It uses pre-calculated phonemes dictionary. If some specific word is not in the dictionary, then the
     russian_g2p.Transcription will be applied (https://github.com/nsu-ai/russian_g2p)
-
-    This tokenizer ignores all punctuation and not-russian-symbol words
     """
 
     @property
@@ -25,15 +24,21 @@ class RussianPhonemeTokenizer(Tokenizer):
     def unk_id(self):
         return 1
 
+    @property
+    def space_id(self):
+        return self.token2id[' ']
+
     def __init__(self):
         self.russian_phonemes = sorted(Phonetics().russian_phonemes_set)
         self.pad = '<PAD>'
         self.unk = '<UNK>'
-        self.id2token = [self.pad, self.unk] + self.russian_phonemes + [' ']
+        self.id2token = [self.pad, self.unk] + self.russian_phonemes + list(punctuation) + [' ']
         self.token2id = {token: id_ for id_, token in enumerate(self.id2token)}
+        assert len(self.id2token) == len(self.token2id)
 
         self.word2phonemes = self._read_phonemes_corpus(Path(__file__).parent / 'data/russian_phonemes_corpus.txt')
         self.word_regexp = re.compile(r'[А-яЁё]+')
+        self.punctuation_regexp = re.compile(f'[{punctuation}]+')
         self.transcriptor = Grapheme2Phoneme()
 
     @staticmethod
@@ -61,18 +66,17 @@ class RussianPhonemeTokenizer(Tokenizer):
         text = replace_numbers_with_text(text, lang='ru')
         text = clean_spaces(text)
 
-        tokens = self._tokenize(text)
-        token_ids = [self.token2id.get(token, self.unk_id) for token in tokens]
+        token_ids = self._encode(text)
 
         return token_ids
 
-    def _tokenize(self, text: str) -> List[str]:
+    def _encode(self, text: str) -> List[int]:
         """Tokenize text on phonemes. Uses dictionary if word is presented, or calculate phonemes in runntime
 
         :param text: str, input text
-        :return: list, of phonemes
+        :return: list, of token ids
         """
-        tokens = []
+        word_ids_sequences = []
 
         word_matches = list(self.word_regexp.finditer(text))
         for i_word_match, word_match in enumerate(word_matches):
@@ -81,10 +85,26 @@ class RussianPhonemeTokenizer(Tokenizer):
 
             if matched_word_tokens is None:
                 matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word)
+            else:
+                matched_word_tokens = matched_word_tokens.copy()
 
-            if i_word_match != len(word_matches) - 1:
-                matched_word_tokens.append(' ')
+            try:
+                matched_word_ids = [self.token2id[token] for token in matched_word_tokens]
+            except KeyError:
+                raise KeyError(f'Some of word phonemes are not in the tokenizer tokens '
+                               f'map (Word: {matched_word}, Tokens: {matched_word_tokens})')
 
-            tokens.extend(matched_word_tokens)
+            word_ids_sequences.append(matched_word_ids)
 
-        return tokens
+        not_word_substrings_split = self.word_regexp.split(text)
+
+        all_ids = []
+
+        for i, not_word_substring in enumerate(not_word_substrings_split):
+            matched_not_word_ids = [self.token2id.get(token, self.unk_id) for token in not_word_substring]
+            all_ids.extend(matched_not_word_ids)
+
+            if i < len(not_word_substrings_split) - 1:
+                all_ids.extend(word_ids_sequences[i])
+
+        return all_ids
