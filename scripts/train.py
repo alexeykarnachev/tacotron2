@@ -208,7 +208,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     # ================ MAIN TRAINNIG LOOP! ===================
     for epoch in range(epoch_offset, hparams.epochs):
         print("Epoch: {}".format(epoch))
-        tqdm_bar = tqdm(enumerate(train_dataloader), total=train_dataloader)
+        tqdm_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader))
         for i, batch_dict in tqdm_bar:
             batch_dict = to_device_dict(batch_dict, device=hparams.device)
             start = time.perf_counter()
