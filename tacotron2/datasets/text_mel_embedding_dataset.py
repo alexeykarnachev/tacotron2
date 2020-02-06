@@ -29,6 +29,8 @@ class TextMelEmbeddingDataset(TextMelDataset):
             - embeddings (numpy 2d array of shape (N, D), where N is a number of embeddings, D is an embeddings dim.)
         :param tokenizer_class_name: str, tokenizer class name. Must be importable from tacotron2.tokenizers module.
             If you have implemented custom tokenizer, add it's import to tacotron2.tokenizers.__init__.py file
+        :param audio_preprocessors: List[AudioPreprocessor], list of preprocessors which will be applied to the input
+            audio signal sequentially
         :param load_mel_from_disk:
         :param max_wav_value:
         :param sampling_rate:

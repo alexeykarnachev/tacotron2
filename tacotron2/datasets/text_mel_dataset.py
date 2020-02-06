@@ -5,15 +5,14 @@ from typing import Any, List
 import numpy as np
 import torch
 import torch.utils.data
+from scipy.io.wavfile import read
 from torch.utils.data import DataLoader, DistributedSampler
 
-from scipy.io.wavfile import read
-
+from tacotron2.audio_preprocessors._audio_preprocessor import AudioPreprocessor
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.models._layers import TacotronSTFT
 from tacotron2.utils import load_filepaths_and_text
-from tacotron2.audio_preprocessors._audio_preprocessor import AudioPreprocessor
 
 
 class TextMelDataset(torch.utils.data.Dataset):
@@ -33,6 +32,8 @@ class TextMelDataset(torch.utils.data.Dataset):
             Fields must be separated by '|' symbol
         :param tokenizer_class_name: str, tokenizer class name. Must be importable from tacotron2.tokenizers module.
             If you have implemented custom tokenizer, add it's import to tacotron2.tokenizers.__init__.py file
+        :param audio_preprocessors: List[AudioPreprocessor], list of preprocessors which will be applied to the input
+            audio signal sequentially
         :param load_mel_from_disk:
         :param max_wav_value:
         :param sampling_rate:
