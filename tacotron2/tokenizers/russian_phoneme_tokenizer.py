@@ -62,7 +62,7 @@ class RussianPhonemeTokenizer(Tokenizer):
         text = clean_spaces(text)
 
         tokens = self._tokenize(text)
-        token_ids = [self.token2id[token] for token in tokens]
+        token_ids = [self.token2id.get(token, self.unk_id) for token in tokens]
 
         return token_ids
 
