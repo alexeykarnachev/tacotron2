@@ -13,6 +13,7 @@ from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.models._layers import TacotronSTFT
 from tacotron2.utils import load_filepaths_and_text
+from tacotron2.audio_preprocessors._audio_preprocessor import AudioPreprocessor
 
 
 class TextMelDataset(torch.utils.data.Dataset):
@@ -52,6 +53,8 @@ class TextMelDataset(torch.utils.data.Dataset):
         self.sampling_rate = sampling_rate
         self.n_frames_per_step = n_frames_per_step
         self.load_mel_from_disk = load_mel_from_disk
+
+        self.audio_preprocessors = audio_preprocessors
 
         self.stft = TacotronSTFT(
             filter_length=filter_length,
