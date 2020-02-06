@@ -51,7 +51,7 @@ def prepare_dataloaders(hparams):
     dataset_class = Factory.get_class(f'tacotron2.datasets.{dataset_class_name}')
 
     dataloaders = []
-    for flag in [True, False]:
+    for flag in [False, True]:
         dataset = dataset_class.from_hparams(hparams, is_valid=flag)
 
         # TODO: get this sample embedding dimension automatically in the model???
