@@ -43,7 +43,7 @@ class Tacotron2Embedded(Tacotron2):
         encoder_outputs_wide = encoder_outputs.size(1)
 
         embedded_speaker = torch.cat(
-            encoder_outputs_wide * [speaker_embeddings],
+            encoder_outputs_wide * [speaker_embeddings.unsqueeze(1)],
             dim=1
         )
         encoder_outputs = torch.cat([encoder_outputs, embedded_speaker], dim=2)
