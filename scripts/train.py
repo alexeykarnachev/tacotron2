@@ -267,8 +267,15 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                                     checkpoint_path)
                 if hparams.lr_reduce:
                     if val_losses[-hparams.lr_reduce['patience']:][0] < val_losses[-1]:
-                        for g in optimizer.param_groups:
-                            g['lr'] = g['lr'] / hparams.lr_reduce['divisor']
+                        patience += 1
+                    else:
+                        patience = 0
+
+                if patience >= hparams.lr_reduce['patience']:
+                    for g in optimizer.param_groups:
+                        g['lr'] = g['lr'] / hparams.lr_reduce['divisor']
+                    patience = 0
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
