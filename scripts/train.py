@@ -148,6 +148,8 @@ def validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, dist
         print("Validation loss {}: {:9f}  ".format(iteration, val_loss))
         logger.log_validation(val_loss, model, batch_dict['y'], y_pred, iteration)
 
+    return val_loss
+
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
           rank, group_name, hparams):
@@ -203,8 +205,11 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
             iteration += 1  # next iteration is iteration + 1
             epoch_offset = max(0, int(iteration / len(train_dataloader)))
 
-    model.train()
+    patience = 0
+    val_losses = []
     is_overflow = False
+
+    model.train()
     # ================ MAIN TRAINNIG LOOP! ===================
     for epoch in range(epoch_offset, hparams.epochs):
         print("Epoch: {}".format(epoch))
@@ -251,14 +256,19 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
             if not is_overflow and (iteration % hparams.iters_per_checkpoint == 0):
 
-                validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, hparams.distributed_run, rank,
+                val_loss = validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, hparams.distributed_run, rank,
                          hparams.device)
+                val_losses.append(val_loss)
+
                 if rank == 0:
                     checkpoint_path = os.path.join(
                         output_directory, "checkpoint_{}".format(iteration))
                     save_checkpoint(model, optimizer, learning_rate, iteration,
                                     checkpoint_path)
-
+                if hparams.lr_reduce:
+                    if val_losses[-hparams.lr_reduce['patience']:][0] < val_losses[-1]:
+                        for g in optimizer.param_groups:
+                            g['lr'] = g['lr'] / hparams.lr_reduce['divisor']
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
