@@ -33,9 +33,10 @@ class Tacotron2Embedded(Tacotron2):
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
-        return self.parse_output(
-            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments],
-            output_lengths)
+        outputs = self.parse_output([mel_outputs, mel_outputs_postnet, gate_outputs, alignments], output_lengths)
+        loss = self.criterion(outputs, inputs['y']) if inputs['y'] is not None else None
+
+        return outputs, loss
 
     def inference(self, inputs, speaker_embeddings):
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
@@ -54,7 +55,6 @@ class Tacotron2Embedded(Tacotron2):
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
-        outputs = self.parse_output(
-            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
+        outputs = self.parse_output([mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
 
         return outputs

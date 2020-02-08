@@ -4,18 +4,18 @@ import os
 import time
 import warnings
 from pathlib import Path
-from tqdm import tqdm
 
 import torch
 import torch.distributed as dist
 from numpy import finfo
+from tqdm import tqdm
 
 from tacotron2.distributed import apply_gradient_allreduce
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.logger import Tacotron2Logger
 from tacotron2.loss_function import Tacotron2Loss
-from tacotron2.utils import seed_everything, to_device_dict
+from tacotron2.utils import seed_everything, to_device_dict, prepare_dataloaders
 
 warnings.filterwarnings("ignore")
 
@@ -40,28 +40,6 @@ def init_distributed(hparams, n_gpus, rank, group_name):
         world_size=n_gpus, rank=rank, group_name=group_name)
 
     print("Done initializing distributed")
-
-
-def prepare_dataloaders(hparams):
-    model2dataset = {
-        'Tacotron2': 'TextMelDataset',
-        'Tacotron2Embedded': 'TextMelEmbeddingDataset'
-    }
-
-    dataset_class_name = model2dataset[hparams.model_class_name]
-    dataset_class = Factory.get_class(f'tacotron2.datasets.{dataset_class_name}')
-
-    dataloaders = []
-    for flag in [False, True]:
-        dataset = dataset_class.from_hparams(hparams, is_valid=flag)
-
-        # TODO: get this sample embedding dimension automatically in the model???
-        hparams.sample_embedding_dim = getattr(dataset, 'sample_embedding_dim', 0)
-
-        dataloader = dataset.get_data_loader(hparams.batch_size, hparams.is_distributed, shuffle=not flag)
-        dataloaders.append(dataloader)
-
-    return dataloaders
 
 
 def prepare_directories_and_logger(output_directory, log_directory, rank):
@@ -256,8 +234,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
             if not is_overflow and (iteration % hparams.iters_per_checkpoint == 0):
 
-                val_loss = validate(model, valid_dataloader, criterion, iteration, n_gpus, logger, hparams.distributed_run, rank,
-                         hparams.device)
+                val_loss = validate(model, valid_dataloader, criterion, iteration, n_gpus, logger,
+                                    hparams.distributed_run, rank,
+                                    hparams.device)
                 val_losses.append(val_loss)
 
                 if rank == 0:

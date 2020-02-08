@@ -25,6 +25,14 @@ class RussianPhonemeTokenizer(Tokenizer):
         return 1
 
     @property
+    def bos_id(self):
+        return 2
+
+    @property
+    def eos_id(self):
+        return 3
+
+    @property
     def space_id(self):
         return self.token2id[' ']
 
@@ -32,7 +40,9 @@ class RussianPhonemeTokenizer(Tokenizer):
         self.russian_phonemes = sorted(Phonetics().russian_phonemes_set)
         self.pad = '<PAD>'
         self.unk = '<UNK>'
-        self.id2token = [self.pad, self.unk] + self.russian_phonemes + list(punctuation) + [' ']
+        self.bos = '<BOS>'
+        self.eos = '<EOS>'
+        self.id2token = [self.pad, self.unk, self.bos, self.eos] + self.russian_phonemes + list(punctuation) + [' ']
         self.token2id = {token: id_ for id_, token in enumerate(self.id2token)}
         assert len(self.id2token) == len(self.token2id)
 
@@ -67,6 +77,8 @@ class RussianPhonemeTokenizer(Tokenizer):
         text = clean_spaces(text)
 
         token_ids = self._encode(text)
+        token_ids.insert(0, self.bos_id)
+        token_ids.append(self.eos_id)
 
         return token_ids
 

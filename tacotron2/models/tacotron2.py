@@ -1,6 +1,8 @@
 from math import sqrt
+
 from torch import nn
 
+from tacotron2.loss_function import Tacotron2Loss
 from tacotron2.models._modules import Encoder, Decoder, Postnet
 from tacotron2.utils import get_mask_from_lengths
 
@@ -25,6 +27,7 @@ class Tacotron2(nn.Module):
         self.encoder = Encoder(hparams)
         self.decoder = Decoder(hparams)
         self.postnet = Postnet(hparams)
+        self.criterion = Tacotron2Loss()
 
     def parse_output(self, outputs, output_lengths=None):
         if self.mask_padding and output_lengths is not None:
@@ -54,9 +57,10 @@ class Tacotron2(nn.Module):
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
-        return self.parse_output(
-            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments],
-            output_lengths)
+        outputs = self.parse_output([mel_outputs, mel_outputs_postnet, gate_outputs, alignments], output_lengths)
+        loss = self.criterion(outputs, inputs['y']) if inputs['y'] is not None else None
+
+        return outputs, loss
 
     def inference(self, inputs):
         embedded_inputs = self.embedding(inputs).transpose(1, 2)

@@ -1,3 +1,5 @@
+import datetime
+import json
 import os
 import pickle
 import random
@@ -6,10 +8,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
-
-def load_object(path):
-    with open(path, 'rb') as handle:
-        return pickle.load(handle)
+from tacotron2.factory import Factory
+from tacotron2.json_encoder import CustomJSONEncoder
 
 
 def get_mask_from_lengths(lengths):
@@ -57,3 +57,51 @@ def seed_everything(seed):
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+
+
+def get_cur_time_str():
+    return datetime.datetime.utcnow().strftime('%Y_%m_%d__%H_%M_%S__%f')[:-3]
+
+
+def load_json(file):
+    with open(file) as f:
+        return json.load(f)
+
+
+def load_object(path):
+    with open(path, 'rb') as handle:
+        return pickle.load(handle)
+
+
+def dump_object(obj, path):
+    with open(path, 'wb') as handle:
+        pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def dump_json(obj, path):
+    with open(path, 'w') as f:
+        json.dump(obj, f, cls=CustomJSONEncoder, indent=2, ensure_ascii=False)
+
+
+def prepare_dataloaders(hparams):
+    model2dataset = {
+        'Tacotron2': 'TextMelDataset',
+        'Tacotron2Embedded': 'TextMelEmbeddingDataset'
+    }
+
+    dataset_class_name = model2dataset[hparams.model_class_name]
+    dataset_class = Factory.get_class(f'tacotron2.datasets.{dataset_class_name}')
+
+    dataloaders = []
+    for flag in [False, True]:
+        dataset = dataset_class.from_hparams(hparams, is_valid=flag)
+
+        # TODO: get this sample embedding dimension automatically in the model???
+        hparams.sample_embedding_dim = getattr(dataset, 'sample_embedding_dim', 0)
+
+        dataloader = dataset.get_data_loader(hparams.batch_size, hparams.is_distributed, shuffle=not flag)
+        dataloaders.append(dataloader)
+
+    hparams.n_symbols = len(dataloaders[0].dataset.tokenizer.id2token)
+
+    return dataloaders

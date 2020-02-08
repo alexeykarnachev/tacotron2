@@ -20,7 +20,6 @@ setup(
         "torch==1.3.1",
         "scikit-learn==0.21.3",
         "pandas==0.25.1",
-        "tb-nightly==2.1.0a20190927",
         "future==0.17.1",
         "tqdm==4.36.1",
         "librosa==0.7.2",
@@ -29,6 +28,7 @@ setup(
         "num2words==0.5.10",
         "rnnmorph==0.4.0",
         "lxml==4.5.0",
+        "transformers==2.4.1",
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "dawg @ http://github.com/pytries/DAWG/tarball/master"
     ],
