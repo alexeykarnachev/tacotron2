@@ -2,7 +2,7 @@
 # Experiment Parameters        #
 ################################
 epochs: 500
-iters_per_checkpoint: 1000
+iters_per_checkpoint: 10
 seed: 228
 use_all_gpu: False
 fp16_opt_level:
@@ -13,7 +13,6 @@ device: 'cuda'
 ################################
 # Data Parameters              #
 ################################
-load_mel_from_disk: False
 data_directory: '../data/dummy'
 tokenizer_class_name: 'RussianPhonemeTokenizer'
 
@@ -71,8 +70,6 @@ postnet_n_convolutions: 5
 ################################
 # Optimization Hyperparameters #
 ################################
-use_saved_learning_rate: False
-
 learning_rate: 1e-3
 lr_reduce_patience: 5
 lr_reduce_factor: 0.1
