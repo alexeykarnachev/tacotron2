@@ -1,6 +1,7 @@
 # Custom
 /data/
 .idea
+/configs/hparams.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
