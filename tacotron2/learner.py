@@ -109,6 +109,7 @@ class Learner:
 
                     [c.on_eval_end(learner=self) for c in self.callbacks]
 
+            self.valid_loss = self.eval(dl=valid_dl)
             [c.on_epoch_end(learner=self) for c in self.callbacks]
 
         [c.on_train_end(learner=self) for c in self.callbacks]

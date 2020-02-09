@@ -20,14 +20,15 @@ class ReduceLROnPlateauCallback(Callback):
     def on_epoch_end(self, learner: Learner):
         cur_loss = learner.valid_loss
 
-        if cur_loss < self.min_loss:
-            self.min_loss = cur_loss
-            self.counter = 0
-        else:
-            self.counter += 1
+        if np.isfinite(cur_loss):
+            if cur_loss < self.min_loss:
+                self.min_loss = cur_loss
+                self.counter = 0
+            else:
+                self.counter += 1
 
-        if self.counter >= self.patience:
-            for g in learner.optimizer.param_groups:
-                g['lr'] *= self.reduce_factor
+            if self.counter >= self.patience:
+                for g in learner.optimizer.param_groups:
+                    g['lr'] *= self.reduce_factor
 
-            self.counter = 0
+                self.counter = 0
