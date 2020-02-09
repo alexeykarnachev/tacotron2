@@ -7,6 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 from transformers import AdamW
 
 from tacotron2.callbacks.model_save_callback import ModelSaveCallback
+from tacotron2.callbacks.reduce_lr_on_plateau_callback import ReduceLROnPlateauCallback
 from tacotron2.callbacks.tensorboard_logger_callback import TensorBoardLoggerCallback
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
@@ -59,6 +60,14 @@ if __name__ == '__main__':
             models_dir=models_dir
         )
     ]
+
+    if None not in (hparams.lr_reduce_patience, hparams.lr_reduce_factor):
+        callbacks.append(
+            ReduceLROnPlateauCallback(
+                patience=hparams.lr_reduce_patience,
+                reduce_factor=hparams.lr_reduce_factor
+            )
+        )
 
     learner = Learner(
         model=model,
