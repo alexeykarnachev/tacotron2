@@ -18,7 +18,7 @@ class ReduceLROnPlateauCallback(Callback):
         self.counter = 0
 
     def on_epoch_end(self, learner: Learner):
-        cur_loss = learner.valid_loss
+        cur_loss = learner.eval(learner.valid_dl)
 
         if np.isfinite(cur_loss):
             if cur_loss < self.min_loss:

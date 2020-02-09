@@ -33,6 +33,8 @@ class Learner:
         self.y_valid_pred_batches = None
         self.grad_norm = None
 
+        self.train_dl = self.valid_dl = None
+
     def fit(self, dl: Tuple[DataLoader, DataLoader], n_epochs, device, accum_steps, eval_steps, use_all_gpu,
             fp16_opt_level, max_grad_norm):
 
@@ -40,11 +42,11 @@ class Learner:
         self.device = device
         self.model = self.model.to(self.device)
 
-        train_dl, valid_dl = dl
+        self.train_dl, self.valid_dl = dl
 
         n_gpu = torch.cuda.device_count() if use_all_gpu else 1
 
-        if train_dl.batch_size / n_gpu != int(train_dl.batch_size / n_gpu):
+        if self.train_dl.batch_size / n_gpu != int(self.train_dl.batch_size / n_gpu):
             raise ValueError(f"You have {n_gpu} GPUs, batch size must be divisible by {n_gpu}")
 
         if fp16_opt_level is not None:
@@ -58,7 +60,7 @@ class Learner:
             self.model = torch.nn.DataParallel(self.model)
 
         self.n_epochs = n_epochs
-        self.n_epoch_steps = len(train_dl)
+        self.n_epoch_steps = len(self.train_dl)
 
         pb_epochs = tqdm(range(n_epochs), total=n_epochs, desc='Training')
         [c.on_train_start(learner=self) for c in self.callbacks]
@@ -67,7 +69,7 @@ class Learner:
             self.cur_epoch = cur_epoch
             self.cur_epoch_step = 0
             pb_epochs.set_postfix({'Epoch': f'{cur_epoch + 1}/{n_epochs}'})
-            pb_batches = tqdm(enumerate(train_dl), total=len(train_dl), desc='Epoch')
+            pb_batches = tqdm(enumerate(self.train_dl), total=len(self.train_dl), desc='Epoch')
 
             for cur_batch, batch in pb_batches:
                 self.cur_epoch_step += 1
@@ -104,12 +106,11 @@ class Learner:
                     pb_batches.set_postfix_str(self.get_log_str())
                     self.train_loss = 0
 
-                if (self.overall_step % eval_steps == 0) and valid_dl is not None:
-                    self.valid_loss = self.eval(dl=valid_dl)
+                if (self.overall_step % eval_steps == 0) and self.valid_dl is not None:
+                    self.valid_loss = self.eval(dl=self.valid_dl)
 
                     [c.on_eval_end(learner=self) for c in self.callbacks]
 
-            self.valid_loss = self.eval(dl=valid_dl)
             [c.on_epoch_end(learner=self) for c in self.callbacks]
 
         [c.on_train_end(learner=self) for c in self.callbacks]
