@@ -13,12 +13,11 @@ device: 'cuda'
 ################################
 # Data Parameters              #
 ################################
+load_mel_from_disk: False
 data_directory: '../data/dummy'
 tokenizer_class_name: 'RussianPhonemeTokenizer'
 
-################################
-# Data Parameters              #
-################################
+# Audio preprocessors
 audio_preprocessors:
   SilenceTrimmer:
     db_threshold: 45
