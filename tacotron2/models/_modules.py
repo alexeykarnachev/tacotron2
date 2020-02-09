@@ -329,6 +329,8 @@ class Decoder(nn.Module):
         # (T_out, B) -> (B, T_out)
         alignments = torch.stack(alignments).transpose(0, 1)
         # (T_out, B) -> (B, T_out)
+        if len(gate_outputs[0].size()) == 0:
+            gate_outputs = [x.unsqueeze(0) for x in gate_outputs]
         gate_outputs = torch.stack(gate_outputs).transpose(0, 1)
         gate_outputs = gate_outputs.contiguous()
         # (T_out, B, n_mel_channels) -> (B, T_out, n_mel_channels)
