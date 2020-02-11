@@ -54,12 +54,17 @@ def to_device(inp: Union[Dict, Sequence], device: Union[str, torch.device]) -> U
         device: Device name.
 
     Returns:
-        The same container as an input container, but with all tensors at specified device
+        The same container as an input container, but with all tensors at specified device.
+
+    Raises:
+        TypeError: If input type not a Dict nor Sequence.
     """
     if isinstance(inp, Dict):
         return to_device_dict(inp, device)
     elif isinstance(inp, Sequence):
         return to_device_sequence(inp, device)
+    else:
+        raise TypeError(f"to_device function can't handle {type(inp)} type")
 
 
 def seed_everything(seed):
