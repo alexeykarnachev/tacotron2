@@ -41,7 +41,6 @@ class Learner:
         self.train_loss = 0
         self.device = device
 
-
         self.train_dl, self.valid_dl = dl
 
         n_gpu = torch.cuda.device_count() if use_all_gpu else 1
