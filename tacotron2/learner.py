@@ -40,7 +40,7 @@ class Learner:
 
         self.train_loss = 0
         self.device = device
-        self.model = self.model.to(self.device)
+
 
         self.train_dl, self.valid_dl = dl
 
@@ -58,6 +58,8 @@ class Learner:
 
         if n_gpu > 1:
             self.model = torch.nn.DataParallel(self.model)
+
+        self.model = self.model.to(self.device)
 
         self.n_epochs = n_epochs
         self.n_epoch_steps = len(self.train_dl)
