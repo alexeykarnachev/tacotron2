@@ -34,7 +34,7 @@ class Tacotron2Embedded(Tacotron2):
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
         outputs = self.parse_output([mel_outputs, mel_outputs_postnet, gate_outputs, alignments], output_lengths)
-        loss = self.criterion(outputs, inputs['y']) if inputs['y'] is not None else None
+        loss = self.criterion(outputs, inputs['y'], output_lengths) if inputs['y'] is not None else None
 
         return outputs, loss
 
