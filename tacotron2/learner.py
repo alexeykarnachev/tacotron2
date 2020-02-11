@@ -49,17 +49,17 @@ class Learner:
         if self.train_dl.batch_size / n_gpu != int(self.train_dl.batch_size / n_gpu):
             raise ValueError(f"You have {n_gpu} GPUs, batch size must be divisible by {n_gpu}")
 
+        if n_gpu > 1:
+            self.model = torch.nn.DataParallel(self.model)
+
+        self.model = self.model.to(self.device)
+
         if fp16_opt_level is not None:
             try:
                 from apex import amp
             except ImportError:
                 raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level=fp16_opt_level)
-
-        if n_gpu > 1:
-            self.model = torch.nn.DataParallel(self.model)
-
-        self.model = self.model.to(self.device)
 
         self.n_epochs = n_epochs
         self.n_epoch_steps = len(self.train_dl)
