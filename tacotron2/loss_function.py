@@ -3,7 +3,7 @@ from torch import nn
 
 class MaskedMSELoss(nn.Module):
     def __init__(self):
-        super(Tacotron2Loss, self).__init__()
+        super(MaskedMSELoss, self).__init__()
 
     def forward(self, pred, target, output_lengths):
         # output_lengths: bs x seq_len
