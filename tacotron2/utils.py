@@ -4,6 +4,7 @@ import os
 import pickle
 import random
 from pathlib import Path
+from typing import Union, Dict, Sequence
 
 import numpy as np
 import torch
@@ -28,7 +29,7 @@ def load_filepaths_and_text(meta_file_path: Path, split="|"):
     return filepaths_and_text
 
 
-def to_device(inp, device):
+def to_device_sequence(inp, device):
     if hasattr(inp, 'to'):
         inp = inp.to(device)
     else:
@@ -42,7 +43,23 @@ def to_device(inp, device):
 
 
 def to_device_dict(inp: dict, device):
-    return {k: to_device(v, device) for k, v in inp.items()}
+    return {k: to_device_sequence(v, device) for k, v in inp.items()}
+
+
+def to_device(inp: Union[Dict, Sequence], device: str) -> Union[Dict, Sequence]:
+    """Sends input (each tensor from dict with tensors or sequence with tensors) to device.
+
+    Args:
+        inp: Dictionary or sequence with tensors.
+        device: Device name.
+
+    Returns:
+        The same container as an input container, but with all tensors at specified device
+    """
+    if isinstance(inp, Dict):
+        return to_device_dict(inp, device)
+    elif isinstance(inp, Sequence):
+        return to_device_sequence(inp, device)
 
 
 def seed_everything(seed):
