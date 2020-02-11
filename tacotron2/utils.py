@@ -46,7 +46,7 @@ def to_device_dict(inp: dict, device):
     return {k: to_device_sequence(v, device) for k, v in inp.items()}
 
 
-def to_device(inp: Union[Dict, Sequence], device: str) -> Union[Dict, Sequence]:
+def to_device(inp: Union[Dict, Sequence], device: Union[str, torch.device]) -> Union[Dict, Sequence]:
     """Sends input (each tensor from dict with tensors or sequence with tensors) to device.
 
     Args:

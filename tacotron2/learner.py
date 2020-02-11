@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from tacotron2.callbacks._callback import Callback
 from tacotron2.models import Tacotron2
-from tacotron2.utils import to_device_dict
+from tacotron2 import utils
 
 
 class Learner:
@@ -75,7 +75,7 @@ class Learner:
             for cur_batch, batch in pb_batches:
                 self.cur_epoch_step += 1
 
-                inputs = to_device_dict(batch, device=device)
+                inputs = utils.to_device(batch, device=device)
                 self.model.train()
                 _, loss = self.model(inputs)
 
@@ -127,7 +127,7 @@ class Learner:
             valid_loss = 0
 
             for batch in pb_valid:
-                inputs = to_device_dict(batch, device=device)
+                inputs = utils.to_device(batch, device=device)
 
                 self.model.eval()
                 y_valid_pred_, loss = self.model(inputs)
