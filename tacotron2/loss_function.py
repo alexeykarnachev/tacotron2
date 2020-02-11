@@ -6,12 +6,12 @@ class MaskedMSELoss(nn.Module):
         super(MaskedMSELoss, self).__init__()
 
     def forward(self, pred, target, output_lengths):
-        # output_lengths: bs x seq_len
+        # output_lengths: bs
         # pred / target: bs x seq_len x n_mel_channels
 
         error = (pred - target)
         squared_errors_sum = error ** 2
-        es_div_by_lengths = squared_errors_sum / output_lengths.unsqueeze(1)
+        es_div_by_lengths = squared_errors_sum / output_lengths.reshape(-1, 1, 1)
         es_bs_on_seq_len = es_div_by_lengths.sum(2)
 
         return es_bs_on_seq_len.mean()
