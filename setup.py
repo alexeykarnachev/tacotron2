@@ -30,6 +30,7 @@ setup(
         "lxml==4.5.0",
         "transformers==2.4.1",
         "unidecode==1.1.1",
+        "pytest==5.3.5",
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "dawg @ http://github.com/pytries/DAWG/tarball/master"
     ],
