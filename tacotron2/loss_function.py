@@ -11,7 +11,7 @@ class MaskedMSELoss(nn.Module):
 
         error = (pred - target)
         squared_errors_sum = error ** 2
-        es_div_by_lengths = squared_errors_sum / output_lengths.unsqueeze(2)
+        es_div_by_lengths = squared_errors_sum / output_lengths.unsqueeze(1)
         es_bs_on_seq_len = es_div_by_lengths.sum(2)
 
         return es_bs_on_seq_len.mean()
