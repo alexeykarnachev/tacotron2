@@ -61,10 +61,8 @@ def to_device(inp: Union[Dict, Sequence], device: Union[str, torch.device]) -> U
     """
     if isinstance(inp, Dict):
         return to_device_dict(inp, device)
-    elif isinstance(inp, Sequence):
-        return to_device_sequence(inp, device)
     else:
-        raise TypeError(f"to_device function can't handle {type(inp)} type")
+        return to_device_sequence(inp, device)
 
 
 def seed_everything(seed):
