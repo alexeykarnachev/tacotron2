@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 
 
@@ -8,8 +7,7 @@ class MaskedMSELoss(nn.Module):
 
     def forward(self, pred, target, output_lengths):
         squared_error = (target - pred) ** 2
-        loss = squared_error.mean(1).sum(1) / output_lengths
-
+        loss = (squared_error.mean(1).sum(1) / output_lengths).mean()
         return loss
 
 
