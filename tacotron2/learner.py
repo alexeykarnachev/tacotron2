@@ -6,9 +6,9 @@ from torch.optim.optimizer import Optimizer
 from torch.utils.data.dataloader import DataLoader
 from tqdm import tqdm
 
+from tacotron2 import utils
 from tacotron2.callbacks._callback import Callback
 from tacotron2.models import Tacotron2
-from tacotron2 import utils
 
 
 class Learner:
@@ -48,7 +48,7 @@ class Learner:
         if self.train_dl.batch_size / n_gpu != int(self.train_dl.batch_size / n_gpu):
             raise ValueError(f"You have {n_gpu} GPUs, batch size must be divisible by {n_gpu}")
 
-        # self.model = self.model.to(self.device)
+        self.model = self.model.to(self.device)
 
         if fp16_opt_level is not None:
             try:
