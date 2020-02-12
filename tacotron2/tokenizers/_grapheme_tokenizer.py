@@ -56,8 +56,8 @@ class GraphemeTokenizer(Tokenizer, ABC):
 
     def _numericalize(self, text: str) -> List[int]:
         token_ids = [self.token2id.get(token, self.unk_id) for token in text]
-        token_ids.insert(0, self.bos_id)
-        token_ids.append(self.eos_id)
+        # token_ids.insert(0, self.bos_id)
+        # token_ids.append(self.eos_id)
         return token_ids
 
     @abstractmethod
