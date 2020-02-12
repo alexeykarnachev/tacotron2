@@ -48,7 +48,7 @@ class Learner:
         if self.train_dl.batch_size / n_gpu != int(self.train_dl.batch_size / n_gpu):
             raise ValueError(f"You have {n_gpu} GPUs, batch size must be divisible by {n_gpu}")
 
-        # self.model = self.model.to(self.device)
+        self.model = self.model.to(self.device)
 
         if fp16_opt_level is not None:
             try:
