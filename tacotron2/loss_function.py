@@ -7,10 +7,8 @@ class MaskedMSELoss(nn.Module):
         super(MaskedMSELoss, self).__init__()
 
     def forward(self, pred, target, output_lengths):
-        mask = pred != 0
-
-        diff2 = (torch.flatten(pred) - torch.flatten(target)) ** 2.0 * torch.flatten(mask)
-        loss = torch.sum(diff2) / torch.sum(mask)
+        squared_error = (target - pred) ** 2
+        loss = squared_error.mean(1).sum(1) / output_lengths
 
         return loss
 
