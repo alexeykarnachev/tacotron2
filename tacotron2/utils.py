@@ -55,9 +55,6 @@ def to_device(inp: Union[Dict, Sequence], device: Union[str, torch.device]) -> U
 
     Returns:
         The same container as an input container, but with all tensors at specified device.
-
-    Raises:
-        TypeError: If input type not a Dict nor Sequence.
     """
     if isinstance(inp, Dict):
         return to_device_dict(inp, device)
