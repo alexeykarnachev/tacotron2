@@ -77,7 +77,7 @@ def get_evaluator(evaluator_classname: str,
     else:
         denoiser = None
 
-    tokenizer = Factory.get_object(f"from tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
+    tokenizer = Factory.get_object(f"tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
 
     evaluator = Factory.get_object(
         evaluator_classname,
