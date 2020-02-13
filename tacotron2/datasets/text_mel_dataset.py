@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import torch.utils.data
 from scipy.io.wavfile import read
-from torch.utils.data import DataLoader, DistributedSampler
+from torch.utils.data import DataLoader
 
 from tacotron2.audio_preprocessors._audio_preprocessor import AudioPreprocessor
 from tacotron2.factory import Factory
@@ -156,23 +156,18 @@ class TextMelDataset(torch.utils.data.Dataset):
 
         return collate
 
-    def get_data_loader(self, batch_size: int, is_distributed: bool, shuffle: bool):
+    def get_data_loader(self, batch_size: int, shuffle: bool):
         """Construct DataLoader object from the Dataset object
 
-        :param is_distributed: bool, set distributed sampler or not
         :param batch_size: int, batch size
         :param shuffle: bool, shuffle data or not
         :return: DataLoader
         """
 
-        sampler = DistributedSampler(self, shuffle=shuffle) if is_distributed else None
-        shuffle = shuffle if sampler is None else False
-
         collate_fn = self.get_collate_function(pad_id=self.tokenizer.pad_id, n_frames_per_step=self.n_frames_per_step)
         dataloader = DataLoader(
             self,
             num_workers=1,
-            sampler=sampler,
             batch_size=batch_size,
             pin_memory=False,
             drop_last=True,

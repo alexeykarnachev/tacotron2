@@ -116,7 +116,7 @@ def prepare_dataloaders(hparams):
         # TODO: get this sample embedding dimension automatically in the model???
         hparams.sample_embedding_dim = getattr(dataset, 'sample_embedding_dim', 0)
 
-        dataloader = dataset.get_data_loader(hparams.batch_size, hparams.is_distributed, shuffle=not flag)
+        dataloader = dataset.get_data_loader(hparams.batch_size, shuffle=not flag)
         dataloaders.append(dataloader)
 
     hparams.n_symbols = len(dataloaders[0].dataset.tokenizer.id2token)
