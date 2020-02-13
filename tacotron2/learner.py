@@ -58,6 +58,7 @@ class Learner:
             self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level=fp16_opt_level)
 
         if n_gpu > 1:
+            # TODO: remove hardcode device_ids
             self.model = torch.nn.DataParallel(self.model, device_ids=[0, 1, 2])
 
         self.n_epochs = n_epochs
