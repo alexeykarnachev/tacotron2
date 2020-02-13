@@ -6,14 +6,8 @@ import torch
 
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
-from tacotron2.models import Tacotron2Embedded, Tacotron2
-from tacotron2.tokenizers import RussianPhonemeTokenizer, RussianGraphemeTokenizer
 from tacotron2.evaluators import BaseEvaluator
-
-from waveglow.models import WaveGlow
 from waveglow.denoiser import Denoiser
-
-from resemblyzer import VoiceEncoder, preprocess_wav
 
 
 def plot_syntesis_result(data, figsize=(16, 4)):
@@ -68,12 +62,12 @@ def get_evaluator(evaluator_classname: str,
     Returns:
         `BaseEvaluator` instance
     """
-    encoder = Factory.get_object(encoder_hparams['model_class_name'], encoder_hparams)
+    encoder = Factory.get_object(f"tacotron2.models.{encoder_hparams['model_class_name']}", encoder_hparams)
     encoder.load_state_dict(
         torch.load(encoder_checkpoint_path, map_location=device)['model_state_dict']
     )
 
-    vocoder = Factory.get_object(vocoder_hparams['model_class_name'], vocoder_hparams)
+    vocoder = Factory.get_object(f"waveflow.models.{vocoder_hparams['model_class_name'], vocoder_hparams}")
     vocoder.load_state_dict(
         torch.load(vocoder_checkpoint_path, map_location=device)
     )
@@ -83,7 +77,7 @@ def get_evaluator(evaluator_classname: str,
     else:
         denoiser = None
 
-    tokenizer = Factory.get_object(encoder_hparams['tokenizer_class_name'])
+    tokenizer = Factory.get_object(f"from tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
 
     evaluator = Factory.get_object(
         evaluator_classname,
