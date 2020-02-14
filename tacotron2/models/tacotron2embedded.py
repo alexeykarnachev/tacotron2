@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 from tacotron2.models.tacotron2 import Tacotron2
 
@@ -7,6 +8,10 @@ class Tacotron2Embedded(Tacotron2):
 
     def __init__(self, hparams):
         super(Tacotron2Embedded, self).__init__(hparams)
+        self.embedding_normalizer = nn.Linear(
+            hparams.sample_embedding_dim,
+            hparams.sample_embedding_dim
+        )
 
     def forward(self, inputs):
         """
@@ -43,6 +48,7 @@ class Tacotron2Embedded(Tacotron2):
         encoder_outputs = self.encoder.inference(embedded_inputs)
         encoder_outputs_wide = encoder_outputs.size(1)
 
+        speaker_embeddings = self.embedding_normalizer(speaker_embeddings)
         embedded_speaker = torch.cat(
             encoder_outputs_wide * [speaker_embeddings.unsqueeze(1)],
             dim=1
