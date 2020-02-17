@@ -21,12 +21,12 @@ class BaseEvaluator(object):
                         .unsqueeze(0)\
                         .to(self.device)
 
-        mel_outputs, mel_outputs_postnet, _, alignments = self.encoder.inference(sequence)
+        mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence)
         audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
         if self.denoiser:
             audio = self.denoiser(audio, strength=0.01)[:, 0]
 
-        return audio, (mel_outputs_postnet, alignments)
+        return audio, (mel_outputs_postnet, gates, alignments)
 
 
 class EmbeddingEvaluator(BaseEvaluator):
@@ -46,9 +46,9 @@ class EmbeddingEvaluator(BaseEvaluator):
         embedding = torch.FloatTensor(embedding)\
                          .unsqueeze(0)
 
-        mel_outputs, mel_outputs_postnet, _, alignments = self.encoder.inference(sequence, embedding)
+        mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence, embedding)
         audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
         if self.denoiser:
             audio = self.denoiser(audio, strength=0.05)[:, 0]
 
-        return audio, (mel_outputs_postnet, alignments)
+        return audio, (mel_outputs_postnet, gates, alignments)
