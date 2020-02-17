@@ -24,9 +24,9 @@ class BaseEvaluator(object):
         mel_outputs, mel_outputs_postnet, _, alignments = self.encoder.inference(sequence)
         audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
         if self.denoiser:
-            audio = self.denoiser(audio, strength=0.05)[:, 0]
+            audio = self.denoiser(audio, strength=0.01)[:, 0]
 
-        return audio
+        return audio, (mel_outputs_postnet, alignments)
 
 
 class EmbeddingEvaluator(BaseEvaluator):
@@ -51,4 +51,4 @@ class EmbeddingEvaluator(BaseEvaluator):
         if self.denoiser:
             audio = self.denoiser(audio, strength=0.05)[:, 0]
 
-        return audio
+        return audio, (mel_outputs_postnet, alignments)
