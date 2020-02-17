@@ -35,7 +35,7 @@ class EmbeddingEvaluator(BaseEvaluator):
     """
 
     def __init__(self, encoder, vocoder, tokenizer, denoiser=None, device='cpu'):
-        super(BaseEvaluator).__init__(encoder, vocoder, tokenizer, denoiser, device)
+        super().__init__(encoder, vocoder, tokenizer, denoiser, device)
 
     def synthesize(self, text, embedding):
 
