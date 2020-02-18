@@ -9,22 +9,19 @@ from tacotron2.learner import Learner
 
 
 class ModelSaveCallback(Callback):
-    def __init__(self, save_each_n_steps: int, hold_n_models: int, models_dir: Path, ):
+    def __init__(self, hold_n_models: int, models_dir: Path, ):
         """
         Callback which saves the model
-        :param save_each_n_steps: int, save the model after this number of optimizer steps
         :param hold_n_models: int, how many models to store (old models will be overwritten by the new ones)
         :param models_dir: output models directory
         """
-        self.save_each_n_steps = save_each_n_steps
         self.hold_n_models = hold_n_models
         self.models_dir = Path(models_dir)
 
         self.models_dir.mkdir(exist_ok=False, parents=True)
 
-    def on_opt_step(self, learner: Learner):
-        if learner.overall_step % self.save_each_n_steps == 0:
-            self._save(learner)
+    def on_eval_end(self, learner: Learner):
+        self._save(learner)
 
     def on_train_end(self, learner):
         self._save(learner)
