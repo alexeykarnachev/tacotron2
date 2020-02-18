@@ -77,8 +77,9 @@ class RussianPhonemeTokenizer(Tokenizer):
         text = clean_spaces(text)
 
         token_ids = self._encode(text)
-        token_ids.insert(0, self.bos_id)
-        token_ids.append(self.eos_id)
+        # Hypotesis: bos\eos make training worse.
+        # token_ids.insert(0, self.bos_id)
+        # token_ids.append(self.eos_id)
 
         return token_ids
 
