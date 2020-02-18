@@ -133,8 +133,8 @@ class Learner:
                 y_valid_pred_, loss = self.model(inputs)
                 valid_loss += loss.item()
 
-                self.y_valid_batches.append(inputs['y'])
-                self.y_valid_pred_batches.append(y_valid_pred_)
+                self.y_valid_batches.append(inputs['y'].detach().cpu())
+                self.y_valid_pred_batches.append(y_valid_pred_.detach().cpu())
 
             valid_loss /= len(pb_valid)
 
