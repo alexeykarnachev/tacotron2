@@ -69,9 +69,16 @@ def get_evaluator(evaluator_classname: str,
     encoder.to(device)
 
     vocoder = Factory.get_object(f"waveglow.models.{vocoder_hparams['model_class_name']}", vocoder_hparams)
-    vocoder.load_state_dict(
-        torch.load(vocoder_checkpoint_path, map_location=device)['model_state_dict']
-    )
+    vocoder_loaded_weights = torch.load(vocoder_checkpoint_path, map_location=device)
+
+    if 'model_state_dict' in vocoder_loaded_weights:
+        vocoder.load_state_dict(
+            torch.load(vocoder_checkpoint_path, map_location=device)['model_state_dict']
+        )
+    else:
+        vocoder.load_state_dict(
+            torch.load(vocoder_checkpoint_path, map_location=device)
+        )
     vocoder.to(device)
 
     if use_denoiser:
