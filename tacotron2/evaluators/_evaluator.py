@@ -17,16 +17,19 @@ class BaseEvaluator(object):
 
     def synthesize(self, text):
 
-        sequence = torch.LongTensor(self.tokenizer.encode(text))\
-                        .unsqueeze(0)\
-                        .to(self.device)
+        with torch.no_grad():
+            self.encoder.eval()
+            self.vocoder.eval()
+            sequence = torch.LongTensor(self.tokenizer.encode(text))\
+                            .unsqueeze(0)\
+                            .to(self.device)
 
-        mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence)
-        audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
-        if self.denoiser:
-            audio = self.denoiser(audio, strength=0.01)[:, 0]
+            mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence)
+            audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
+            if self.denoiser:
+                audio = self.denoiser(audio, strength=0.01)[:, 0]
 
-        return audio, (mel_outputs_postnet, gates, alignments)
+            return audio, (mel_outputs_postnet, gates, alignments)
 
 
 class EmbeddingEvaluator(BaseEvaluator):
@@ -39,16 +42,19 @@ class EmbeddingEvaluator(BaseEvaluator):
 
     def synthesize(self, text, embedding):
 
-        sequence = torch.LongTensor(self.tokenizer.encode(text))\
-                        .unsqueeze(0)\
-                        .to(self.device)
+        with torch.no_grad():
+            self.encoder.eval()
+            self.vocoder.eval()
+            sequence = torch.LongTensor(self.tokenizer.encode(text))\
+                            .unsqueeze(0)\
+                            .to(self.device)
 
-        embedding = torch.FloatTensor(embedding)\
-                         .unsqueeze(0)
+            embedding = torch.FloatTensor(embedding)\
+                             .unsqueeze(0)
 
-        mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence, embedding)
-        audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
-        if self.denoiser:
-            audio = self.denoiser(audio, strength=0.05)[:, 0]
+            mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence, embedding)
+            audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
+            if self.denoiser:
+                audio = self.denoiser(audio, strength=0.05)[:, 0]
 
-        return audio, (mel_outputs_postnet, gates, alignments)
+            return audio, (mel_outputs_postnet, gates, alignments)
