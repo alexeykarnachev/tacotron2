@@ -50,7 +50,8 @@ class EmbeddingEvaluator(BaseEvaluator):
                             .to(self.device)
 
             embedding = torch.FloatTensor(embedding)\
-                             .unsqueeze(0)
+                             .unsqueeze(0)\
+                             .to(self.device)
 
             mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence, embedding)
             audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
