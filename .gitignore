@@ -3,6 +3,7 @@
 .idea
 /configs/*
 !/configs/hparams.yaml
+/notebooks/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
