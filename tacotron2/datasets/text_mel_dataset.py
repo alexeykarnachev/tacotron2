@@ -13,6 +13,7 @@ from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.models._layers import TacotronSTFT
 from tacotron2.utils import load_filepaths_and_text
+from tacotron2.datasets.length_sort_sampler import LengthSortSampler
 
 
 class TextMelDataset(torch.utils.data.Dataset):
@@ -165,6 +166,8 @@ class TextMelDataset(torch.utils.data.Dataset):
         """
 
         collate_fn = self.get_collate_function(pad_id=self.tokenizer.pad_id, n_frames_per_step=self.n_frames_per_step)
+        sampler_lengths = [len(x[1]) for x in self.audiopaths_and_text]
+        sampler_ = LengthSortSampler(sampler_lengths, bs=batch_size)
         dataloader = DataLoader(
             self,
             num_workers=1,
@@ -172,6 +175,7 @@ class TextMelDataset(torch.utils.data.Dataset):
             pin_memory=False,
             drop_last=True,
             collate_fn=collate_fn,
+            sampler=sampler_,
             shuffle=shuffle
         )
 
