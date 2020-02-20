@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 from tacotron2.models.tacotron2 import Tacotron2
 

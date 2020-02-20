@@ -27,6 +27,7 @@ class Tacotron2(nn.Module):
         self.encoder = Encoder(hparams)
         self.decoder = Decoder(hparams)
         self.postnet = Postnet(hparams)
+
         self.criterion = Tacotron2Loss()
 
     def parse_output(self, outputs, output_lengths=None):
