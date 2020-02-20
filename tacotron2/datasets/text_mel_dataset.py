@@ -157,11 +157,10 @@ class TextMelDataset(torch.utils.data.Dataset):
 
         return collate
 
-    def get_data_loader(self, batch_size: int, shuffle: bool):
+    def get_data_loader(self, batch_size: int):
         """Construct DataLoader object from the Dataset object
 
         :param batch_size: int, batch size
-        :param shuffle: bool, shuffle data or not
         :return: DataLoader
         """
 
@@ -175,8 +174,7 @@ class TextMelDataset(torch.utils.data.Dataset):
             pin_memory=False,
             drop_last=True,
             collate_fn=collate_fn,
-            sampler=sampler_,
-            shuffle=shuffle
+            sampler=sampler_
         )
 
         return dataloader

@@ -15,6 +15,7 @@ class Tacotron2(nn.Module):
 
     def __init__(self, hparams):
         super(Tacotron2, self).__init__()
+        self.hparams = hparams
         self.mask_padding = hparams.mask_padding
         self.fp16_run = hparams.fp16_run
         self.n_mel_channels = hparams.n_mel_channels
