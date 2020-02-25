@@ -37,7 +37,7 @@ app = Flask(__name__)
 def speak():
     if request.method == 'POST':
         context_text = request.json
-        tmp_path = str(app_folder_path / str(hash(context_text)) + '.wav')
+        tmp_path = str(app_folder_path / str(hash(context_text))) +  '.wav'
         audio, (_, _, _) = evaluator.synthesize(context_text)
         librosa.output.write_wav(str(tmp_path), audio.numpy().flatten(), 22050)
 
