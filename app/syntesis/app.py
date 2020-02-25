@@ -39,6 +39,6 @@ def speak():
         context_text = request.json
         tmp_path = str(app_folder_path / str(hash(context_text))) +  '.wav'
         audio, (_, _, _) = evaluator.synthesize(context_text)
-        librosa.output.write_wav(str(tmp_path), audio.numpy().flatten(), 22050)
+        librosa.output.write_wav(str(tmp_path), audio.cpu().numpy().flatten(), 22050)
 
         return send_file(open(tmp_path, "rb"), mimetype="application/wav")
