@@ -1,0 +1,8 @@
+app_folder: /home/e.timofeev/projects/forked/tacotron2/app/syntesis/tmp
+evaluator_classname: BaseEvaluator
+encoder_hparams_path: /home/e.timofeev/projects/forked/tacotron2/configs/hparams.ruslan.yaml
+encoder_checkpoint_path: /home/e.timofeev/projects/forked/tacotron2/output/ruslan_stable/models/model_88000.pth
+vocoder_hparams_path: /home/e.timofeev/projects/forked/waveglow/configs/hparams.default.yaml
+vocoder_checkpoint_path: /home/e.timofeev/projects/forked/waveglow/models/waveflow_old.pth
+use_denoiser: True
+device: cpu
