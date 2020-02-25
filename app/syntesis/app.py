@@ -1,4 +1,4 @@
-import argparse
+import os
 import yaml
 from pathlib import Path
 
@@ -10,11 +10,7 @@ from tacotron2.hparams import HParams
 from tacotron2.evaluators import get_evaluator
 
 
-parser = argparse.ArgumentParser(description='Starts a syntesis app')
-parser.add_argument('--config_path', type=str, help='Path to config file')
-args = parser.parse_args()
-
-with open(args.config_path) as cfg_file:
+with open(os.getenv('APP_CONFIG')) as cfg_file:
     CONFIG = yaml.load(cfg_file)
 
 app_folder_path = Path(CONFIG['app_folder'])

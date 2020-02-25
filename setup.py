@@ -32,6 +32,7 @@ setup(
         "unidecode==1.1.1",
         "pytest==5.3.5",
         "flask==1.1.1",
+        "gunicorn==19.9.0",
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "dawg @ http://github.com/pytries/DAWG/tarball/master"
     ],
