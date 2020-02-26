@@ -1,1 +1,1 @@
-from tacotron2.audio_preprocessors.silence_trimmer import SilenceTrimmer
+from .preprocessors import AmplitudeNormalizer, SilenceTrimmer

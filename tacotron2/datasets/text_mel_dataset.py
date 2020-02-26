@@ -100,7 +100,7 @@ class TextMelDataset(torch.utils.data.Dataset):
                 raise FileNotFoundError(f"Can't find {str(value)} file. Make sure, that file exists")
         elif param_name == 'audio_preprocessors':
             value = [
-                Factory.get_object(f'tacotron2.audio_preprocessors.{k}', **v)
+                Factory.get_object(f'tacotron2.audio_preprocessors.{k}', **(v or dict()))
                 for k, v in hparams.audio_preprocessors.items()
             ]
         else:
