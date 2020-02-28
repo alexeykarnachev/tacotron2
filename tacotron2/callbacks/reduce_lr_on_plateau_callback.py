@@ -28,7 +28,7 @@ class ReduceLROnPlateauCallback(Callback):
             else:
                 self.counter += 1
 
-            if self.counter >= self.patience and cur_loss >= self.prev_reduce_loss:
+            if self.counter >= self.patience:
                 self.prev_reduce_loss = cur_loss
                 for g in learner.optimizer.param_groups:
                     g['lr'] *= self.reduce_factor
