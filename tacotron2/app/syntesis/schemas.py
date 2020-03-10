@@ -16,12 +16,3 @@ class SpeakRequestSchema(marshmallow.Schema):
         required=True, example=defaults.UTTERANCE,
         validate=_get_len_val(defaults.MIN_UTTERANCE_LENGTH, defaults.MAX_UTTERANCE_LENGTH)
     )
-
-
-class SpeakResponseSchema(marshmallow.Schema):
-    """Defines reply schema for the `say` route."""
-
-    reply = fields.BytesField(
-        description='Output bytes which can be converted to raw .wav file.',
-        required=True
-    )

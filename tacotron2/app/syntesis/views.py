@@ -23,8 +23,7 @@ class Speak(SwaggerView):
     ]
     responses = {
         200: {
-            "description": "OK.",
-            "schema": schemas.SpeakResponseSchema
+            "description": "OK."
         },
         400: {
             "description": "Bad request.",
@@ -56,10 +55,6 @@ class Speak(SwaggerView):
         with open(tmp_path, 'rb') as file:
             result = file.read()
 
-        reply = {
-            'reply': result
-        }
-        reply = schemas.SpeakResponseSchema().dump(reply)
         self.logger.info('Result was constructed.')
 
-        return reply, http.HTTPStatus.OK
+        return result, http.HTTPStatus.OK
