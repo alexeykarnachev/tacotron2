@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from typing import Tuple
 
+import flasgger
 import rnd_utilities
 import yaml
 
@@ -106,6 +107,7 @@ def prepare() -> flask.Flask:
 
     # Flask application
     app, basic_auth = prepare_app(config['basic_auth_username'], config['basic_auth_password'])
+    flasgger.Swagger(app)
     _add_app_routes(app, basic_auth, evaluator, wav_folder)
 
     logger.info('All application objects have been initialized successfully.')
