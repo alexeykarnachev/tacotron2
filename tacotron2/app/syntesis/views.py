@@ -59,7 +59,7 @@ class Speak(SwaggerView):
         reply = {
             'reply': result
         }
-        reply = flask.jsonify(schemas.SpeakResponseSchema().dump(reply))
+        reply = schemas.SpeakResponseSchema().dump(reply)
         self.logger.info('Result was constructed.')
 
         return reply, http.HTTPStatus.OK
