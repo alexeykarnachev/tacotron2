@@ -13,7 +13,7 @@ class SpeakRequestSchema(marshmallow.Schema):
 
     utterance = marshmallow.fields.Str(
         description="The higher the value is, the more diverse replies will be generated.",
-        required=True, missing=defaults.UTTERANCE, example=defaults.UTTERANCE,
+        required=True, example=defaults.UTTERANCE,
         validate=_get_len_val(defaults.MIN_UTTERANCE_LENGTH, defaults.MAX_UTTERANCE_LENGTH)
     )
 
