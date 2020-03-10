@@ -35,6 +35,8 @@ setup(
         "gunicorn==19.9.0",
         "marshmallow==3.5.0",
         "flasgger==0.9.4",
+        "apispec==3.3.0",
+        "apispec-webframeworks==0.5.2",
         "flask-basicauth==0.2.0",
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "dawg @ http://github.com/pytries/DAWG/tarball/master",
