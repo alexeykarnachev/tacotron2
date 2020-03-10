@@ -47,14 +47,15 @@ def check_validness(s):
         return True, 'Correct request'
 
 
-def _add_app_routes(app, basic_auth, evaluator, wav_folder):
+def _add_app_routes(app, basic_auth, evaluator, wav_folder, logger):
     app.add_url_rule(
         '/speak/',
         view_func=basic_auth.required(
             views.Speak.as_view(
                 'speak',
                 evaluator=evaluator,
-                wav_folder=wav_folder
+                wav_folder=wav_folder,
+                logger=logger
             )
         ),
         methods=['POST']
@@ -108,7 +109,7 @@ def prepare() -> flask.Flask:
     # Flask application
     app, basic_auth = prepare_app(config['basic_auth_username'], config['basic_auth_password'])
     flasgger.Swagger(app)
-    _add_app_routes(app, basic_auth, evaluator, wav_folder)
+    _add_app_routes(app, basic_auth, evaluator, wav_folder, logger)
 
     logger.info('All application objects have been initialized successfully.')
 
