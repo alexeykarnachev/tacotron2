@@ -6,3 +6,5 @@ vocoder_hparams_path: /home/e.timofeev/projects/forked/waveglow/configs/hparams.
 vocoder_checkpoint_path: /home/e.timofeev/projects/forked/waveglow/models/waveflow_old.pth
 use_denoiser: True
 device: cpu
+basic_auth_username: user
+basic_auth_password: password
