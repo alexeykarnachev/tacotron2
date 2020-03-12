@@ -34,7 +34,9 @@ setup(
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "dawg @ http://github.com/pytries/DAWG/tarball/master"
     ],
-    package_dir={'tacotron2': 'tacotron2'},
+    package_dir={
+        'tacotron2': 'tacotron2'
+    },
     package_data={
         'tacotron2': ['tokenizers/data/*']
     }
