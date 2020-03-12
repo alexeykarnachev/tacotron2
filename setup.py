@@ -35,5 +35,7 @@ setup(
         "dawg @ http://github.com/pytries/DAWG/tarball/master"
     ],
     package_dir={'tacotron2': 'tacotron2'},
-    package_data={'tacotron2': ['tokenizers/data/*']}
+    package_data={
+        'tacotron2': ['tokenizers/data/*']
+    }
 )
