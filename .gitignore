@@ -4,6 +4,7 @@
 /configs/*
 !/configs/hparams.yaml
 /notebooks/
+/dummy/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
