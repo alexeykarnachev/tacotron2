@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from typing import Tuple
 
@@ -87,7 +88,8 @@ def prepare() -> flask.Flask:
         Flask application object.
     """
     logger = prepare_logging()
-    config = rnd_utilities.load_json(defaults.APP_DIR / 'config.yaml')
+    config_file = os.getenv('APP_CONFIG')
+    config = rnd_utilities.load_json(defaults.APP_DIR / config_file)
 
     wav_folder = defaults.APP_DIR / 'wavs'
     wav_folder.mkdir(exist_ok=True, parents=True)
