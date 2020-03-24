@@ -44,7 +44,7 @@ USER_VOICES = defaultdict(lambda: START_VOICE)
 
 
 def get_mp3_path(wav_basestring, text, sampling_rate):
-    hashname = hash(text)
+    hashname = str(hash(text))
     io_stream = io.BytesIO(wav_basestring)
     audio = librosa.load(io_stream)
 
