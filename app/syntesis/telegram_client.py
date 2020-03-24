@@ -127,7 +127,7 @@ async def send_reply(message: types.Message):
             text=message.text,
             sampling_rate=VOICES[USER_VOICES[user_id]]['sampling_rate'])
 
-        with open(path_to_mp3, 'r') as audio_file:
+        with open(path_to_mp3, 'rb') as audio_file:
             await message.answer_audio(audio=audio_file)
     elif status == 400:
         error_message = f"Bad request: {text['utterance']}"
