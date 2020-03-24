@@ -131,7 +131,7 @@ async def send_reply(message: types.Message):
             await message.answer_audio(audio=audio_file)
     elif status == 400:
         text = json.loads(wav_basestring)
-        error_message = f"Bad request: {text['utterance']}"
+        error_message = f"Bad request: {text}"
         await message.answer(error_message)
 
 
