@@ -23,7 +23,7 @@ setup(
         "future==0.17.1",
         "tqdm==4.36.1",
         "librosa==0.7.2",
-        "pydub-0.23.1",
+        "pydub==0.23.1",
         "pillow==7.0.0",
         "matplotlib==3.1.3",
         "num2words==0.5.10",
