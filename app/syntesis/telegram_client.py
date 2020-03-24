@@ -62,7 +62,7 @@ def get_mp3_path(wav_basestring, text, sampling_rate):
 
 def _get_voices_keyboard(selected: Optional[str] = None):
     keyboard = []
-    for voice in VOICES.items():
+    for voice, _ in VOICES.items():
         if voice == DEFAULT_VOICE:
             continue
         text = voice
