@@ -8,7 +8,6 @@ import yaml
 
 import flask
 import flask_basicauth
-from flask import Flask
 
 from tacotron2.app.syntesis import defaults
 from tacotron2.app.syntesis import views
@@ -18,7 +17,7 @@ from tacotron2.hparams import HParams
 
 def load_yaml(path: Path):
     with open(str(path)) as file:
-        _yaml = yaml.load(file)
+        _yaml = yaml.full_load(file)
 
     return _yaml
 
@@ -88,7 +87,7 @@ def prepare() -> flask.Flask:
         Flask application object.
     """
     logger = prepare_logging()
-    config = load_yaml(defaults.APP_DIR / 'config.yaml')
+    config = rnd_utilities.load_json(defaults.APP_DIR / 'config.yaml')
 
     wav_folder = defaults.APP_DIR / 'wavs'
     wav_folder.mkdir(exist_ok=True, parents=True)

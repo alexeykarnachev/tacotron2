@@ -1,0 +1,14 @@
+{
+  "api_token": "token",
+  "user": "user",
+  "password": "password",
+  "bot_folder": "/Users/egortimofeev/Documents/projects/tacotron2/app/syntesis/wavs/",
+  "voices": {
+    "ruslan": {
+      "name": "Ruslan",
+      "url": "http://localhost:9282/",
+      "sampling_rate": 22050
+    }
+  },
+  "default_voice": "ruslan"
+}
