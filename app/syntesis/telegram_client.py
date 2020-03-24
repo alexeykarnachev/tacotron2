@@ -86,9 +86,8 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
     async with aiohttp.ClientSession(auth=AUTH) as session:
         async with session.post(voice_url, data=payload, headers=HEADERS) as response:
             status = response.status
-            responce_text = await response.text()
-            loaded = json.loads(responce_text)
-            return loaded, status
+            responce_bytes = await response.read()
+            return responce_bytes, status
 
 
 @DP.message_handler(commands=['start'])
@@ -119,10 +118,10 @@ async def send_welcome(callback_query: types.CallbackQuery):
 async def send_reply(message: types.Message):
     """Replies on user message."""
     user_id = str(message.from_user.id)
-    text, status = await _get_reply(message=message.text, user_id=user_id)
+    responce_bytes, status = await _get_reply(message=message.text, user_id=user_id)
 
     if status == 200:
-        wav_basestring = text
+        wav_basestring = responce_bytes
         path_to_mp3 = get_mp3_path(
             wav_basestring=wav_basestring,
             text=message.text,
