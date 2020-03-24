@@ -86,8 +86,9 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
     async with aiohttp.ClientSession(auth=AUTH) as session:
         async with session.post(voice_url, data=payload, headers=HEADERS) as response:
             status = response.status
-            bytecode = response.content.read()
-            return bytecode, status
+            responce_text = await response.text()
+            loaded = json.loads(responce_text)
+            return loaded, status
 
 
 @DP.message_handler(commands=['start'])
@@ -130,8 +131,7 @@ async def send_reply(message: types.Message):
         with open(path_to_mp3, 'r') as audio_file:
             await message.answer_audio(audio=audio_file)
     elif status == 400:
-        reply = json.loads(text)
-        error_message = f"Bad request: {reply['utterance']}"
+        error_message = f"Bad request: {text['utterance']}"
         await message.answer(error_message)
 
 
