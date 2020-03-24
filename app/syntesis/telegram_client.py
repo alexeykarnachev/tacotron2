@@ -125,7 +125,7 @@ async def send_reply(message: types.Message):
         path_to_mp3 = get_mp3_path(
             wav_basestring=wav_basestring,
             text=message.text,
-            sampling_rate=VOICES[USER_VOICES[user_id]['sampling_rate']])
+            sampling_rate=VOICES[USER_VOICES[user_id]]['sampling_rate'])
 
         with open(path_to_mp3, 'r') as audio_file:
             await message.answer_audio(audio=audio_file)
