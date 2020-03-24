@@ -119,9 +119,9 @@ async def send_reply(message: types.Message):
     """Replies on user message."""
     user_id = str(message.from_user.id)
     responce_bytes, status = await _get_reply(message=message.text, user_id=user_id)
+    wav_basestring = responce_bytes
 
     if status == 200:
-        wav_basestring = responce_bytes
         path_to_mp3 = get_mp3_path(
             wav_basestring=wav_basestring,
             text=message.text,
@@ -130,6 +130,7 @@ async def send_reply(message: types.Message):
         with open(path_to_mp3, 'rb') as audio_file:
             await message.answer_audio(audio=audio_file)
     elif status == 400:
+        text = json.loads(wav_basestring)
         error_message = f"Bad request: {text['utterance']}"
         await message.answer(error_message)
 
