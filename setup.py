@@ -31,9 +31,17 @@ setup(
         "transformers==2.4.1",
         "unidecode==1.1.1",
         "pytest==5.3.5",
-        "inflect==4.1.0"
+        "flask==1.1.1",
+        "gunicorn==19.9.0",
+        "marshmallow==3.5.0",
+        "flasgger==0.9.4",
+        "apispec==3.3.0",
+        "apispec-webframeworks==0.5.2",
+        "flask-basicauth==0.2.0",
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
-        "dawg @ http://github.com/pytries/DAWG/tarball/master"
+        "dawg @ http://github.com/pytries/DAWG/tarball/master",
+        "rnd_utilities @ git+https://bitbucket.org/just-ai/rnd_utilities/get/master.tar.gz",
+        "rnd_datasets @ git+https://bitbucket.org/just-ai/rnd_datasets/get/master.tar.gz"
     ],
     package_dir={'tacotron2': 'tacotron2'},
     package_data={'tacotron2': ['tokenizers/data/*']}
