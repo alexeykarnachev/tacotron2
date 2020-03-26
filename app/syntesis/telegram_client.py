@@ -79,7 +79,7 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
         user_voice = USER_VOICES[user_id]
         voice_url = VOICES[user_voice]['url']
     else:
-        voice_url = START_VOICE
+        voice_url = VOICES[START_VOICE]['url']
 
     inp_dict = {
         "utterance": message
