@@ -75,8 +75,11 @@ def _get_voices_keyboard(selected: Optional[str] = None):
 
 
 async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
-    user_voice = USER_VOICES[user_id]
-    voice_url = VOICES[user_voice]['url']
+    if user_id in USER_VOICES:
+        user_voice = USER_VOICES[user_id]
+        voice_url = VOICES[user_voice]['url']
+    else:
+        voice_url = START_VOICE
 
     inp_dict = {
         "utterance": message
@@ -91,8 +94,17 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
 
 
 @DP.message_handler(commands=['start'])
-async def send_welcome(message: types.Message):
-    """This handler will be called when user sends `/start` or command"""
+async def send_kb(message: types.Message):
+    """This handler will be called when user sends `/start`"""
+    await message.reply(
+        """Привет. Я озвучу любую отправленную мне фразу на русском языке длиной до 150 символов. 
+        Чтобы выбрать голос отправь /voices"""
+    )
+
+
+@DP.message_handler(commands=['voices'])
+async def send_kb(message: types.Message):
+    """This handler will be called if user sends `/voices`"""
     keyboard = _get_voices_keyboard()
     await message.reply(
         "Выбери голос",
@@ -102,7 +114,7 @@ async def send_welcome(message: types.Message):
 
 
 @DP.callback_query_handler(lambda q: q.data in VOICES.keys())
-async def send_welcome(callback_query: types.CallbackQuery):
+async def send_kb(callback_query: types.CallbackQuery):
     user_id = str(callback_query.from_user.id)
     voice = callback_query.data
     keyboard = _get_voices_keyboard(selected=voice)
