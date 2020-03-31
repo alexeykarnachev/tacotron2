@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from rnd_utilities.file_utilities import load_json, dump_json
 import multiprocessing as mp
 from tqdm import tqdm
+import gdown
 
 
 _WIKTIONARY_URL = 'https://ru.wiktionary.org/wiki/Служебная:Поиск?search={}&go=Перейти'
@@ -15,7 +16,12 @@ class WiktionaryAccentor:
     def __init__(self, do_lookup_in_wiki: bool, max_n_retries=2):
         self.do_lookup_in_wiki = do_lookup_in_wiki
         self.max_n_retries = max_n_retries
-        self.word2accents = load_json(Path(__file__).parent / 'data/accents.json')
+
+        accents_path = Path(__file__).parent / 'data/accents.json'
+        if not accents_path.is_file():
+            gdown.download("https://drive.google.com/uc?id=1qpJbZjJsJrfYxsT_5cmkqgIQ5-_yisoY",
+                           str(accents_path.absolute()))
+        self.word2accents = load_json(accents_path)
         self.morph_analyzer = pymorphy2.MorphAnalyzer()
 
     def get_accent(self, word: str) -> str:

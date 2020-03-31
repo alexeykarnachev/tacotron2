@@ -1,5 +1,6 @@
 # Custom
 /data/
+/tacotron2/tokenizers/data/accents.json
 .idea
 /configs/*
 !/configs/hparams.yaml
