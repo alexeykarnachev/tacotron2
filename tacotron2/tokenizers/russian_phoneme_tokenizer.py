@@ -126,8 +126,3 @@ class RussianPhonemeTokenizer(Tokenizer):
             if i < len(not_word_substrings_split) - 1:
                 all_ids.extend(word_ids_sequences[i])
         return all_ids
-
-
-if __name__ == '__main__':
-    r = wiki_accentor.get_accent('макромолекулы')
-    print(r)
