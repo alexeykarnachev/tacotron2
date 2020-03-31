@@ -127,7 +127,7 @@ class RussianPhonemeTokenizer(Tokenizer):
         return all_ids
 
     @staticmethod
-    def find_accent(word):
+    def find_accent(word: str) -> str:
         res = wiki_accentor.get_accent(word, 'offline')
         if res == word and DO_WIKI_REQUEST:
             return wiki_accentor.get_accent(word, 'online')
