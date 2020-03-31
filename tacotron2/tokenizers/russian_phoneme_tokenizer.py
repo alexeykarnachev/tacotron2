@@ -12,8 +12,9 @@ from tacotron2.tokenizers._utilities import replace_numbers_with_text, clean_spa
 
 from tacotron2.tokenizers.wiktionary_accentor import WiktionaryAccentor
 
-wiki_accentor = WiktionaryAccentor()
+
 DO_WIKI_REQUEST = True
+wiki_accentor = WiktionaryAccentor(DO_WIKI_REQUEST)
 
 
 class RussianPhonemeTokenizer(Tokenizer):
@@ -103,7 +104,7 @@ class RussianPhonemeTokenizer(Tokenizer):
 
             matched_word_tokens = self.word2phonemes.get(matched_word, None)
             if matched_word_tokens is None:
-                matched_word = self.find_accent(matched_word)
+                matched_word = wiki_accentor.get_accent(matched_word)
                 matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word)
 
             try:
@@ -125,10 +126,3 @@ class RussianPhonemeTokenizer(Tokenizer):
             if i < len(not_word_substrings_split) - 1:
                 all_ids.extend(word_ids_sequences[i])
         return all_ids
-
-    @staticmethod
-    def find_accent(word: str) -> str:
-        res = wiki_accentor.get_accent(word, 'offline')
-        if res == word and DO_WIKI_REQUEST:
-            return wiki_accentor.get_accent(word, 'online')
-        return res

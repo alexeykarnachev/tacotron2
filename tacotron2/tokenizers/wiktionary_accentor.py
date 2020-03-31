@@ -3,7 +3,7 @@ from pathlib import Path
 import requests
 import pymorphy2
 from bs4 import BeautifulSoup
-from rnd_utilities.file_utilities import load_json
+from rnd_utilities.file_utilities import load_json, dump_json
 import multiprocessing as mp
 from tqdm import tqdm
 
@@ -12,21 +12,23 @@ _WIKTIONARY_URL = 'https://ru.wiktionary.org/wiki/Служебная:Поиск?
 
 
 class WiktionaryAccentor:
-    def __init__(self, max_n_retries=2):
+    def __init__(self, do_lookup_in_wiki: bool, max_n_retries=2):
+        self.do_lookup_in_wiki = do_lookup_in_wiki
         self.max_n_retries = max_n_retries
-        self.word2accents = load_json(Path(__file__).parent / 'data/accents_dict.json')
+        self.word2accents = load_json(Path(__file__).parent / 'data/accents.json')
         self.morph_analyzer = pymorphy2.MorphAnalyzer()
 
-    def get_accent(self, word: str, mode: str) -> str:
-        if mode == 'offline':
-            return self._get_accent_offline(word)
-        elif mode == 'online':
+    def get_accent(self, word: str) -> str:
+        res = self._get_accent_offline(word)
+        if res == word and self.do_lookup_in_wiki:
             return self._get_accent_online(word)
+        return res
 
     def _get_accent_offline(self, word: str) -> str:
-        index = self.word2accents.get(word, None)
-        if index:
-            word = word[:index] + '+' + word[index:]
+        indexes = self.word2accents.get(word, None)
+        if indexes:
+            for index in indexes:
+                word = word[:index] + '+' + word[index:]
             return word
         return word
 
@@ -42,12 +44,23 @@ class WiktionaryAccentor:
             word = self.stress_sign_to_plus(variants[index])
         return self.delete_misc_symbols(word)
 
-    def parse_data(self, data: List[str], n_processes=4) -> List:
+    def parse_data(self, data: List[str], output_name: Path, n_processes=4) -> None:
+        def get_indexes_of_stress(s):
+            return [i for i in range(len(s)) if ord(s[i]) == 769]
+
         with mp.Pool(n_processes) as pool:
             results = list(tqdm(pool.imap(self.get_from_wiki, data), total=len(data)))
             pool.close()
             pool.join()
-        return results
+
+        word_forms = []
+        for res in results:
+            for word in res:
+                word_forms.extend(word.split())
+        word_forms = list(set(word_forms))
+        word_forms = [x.lower().strip().replace('*', '').replace('·', '') for x in word_forms]
+        accents_dict = {self.delete_stress_sign(w): get_indexes_of_stress(w) for w in word_forms}
+        dump_json(accents_dict, output_name)
 
     @staticmethod
     def get_from_wiki(word, max_n_tries=2) -> List:
