@@ -13,7 +13,7 @@ from tacotron2.tokenizers._utilities import replace_numbers_with_text, clean_spa
 from tacotron2.tokenizers.wiktionary_accentor import WiktionaryAccentor
 
 
-DO_WIKI_REQUEST = True
+DO_WIKI_REQUEST = False
 wiki_accentor = WiktionaryAccentor(DO_WIKI_REQUEST)
 
 

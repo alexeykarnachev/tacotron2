@@ -11,7 +11,7 @@ import gdown
 
 _WIKTIONARY_URL = 'https://ru.wiktionary.org/wiki/Служебная:Поиск?search={}&go=Перейти'
 
-_ACCENTS_FILE_ID = '1VIKez7qneYrPU4HATT4bEOfWhr9Oq_p4'
+_ACCENTS_FILE_ID = '1AjWop6_-ZErmbklE83U5pXpjTYgSM3vr'
 _GOOGLE_DRIVE_PATH = "https://drive.google.com/uc?id={}".format(_ACCENTS_FILE_ID)
 
 
@@ -41,6 +41,7 @@ class WiktionaryAccentor:
         return word
 
     def _get_accent_online(self, word: str) -> str:
+        original = word
         parsed = self.morph_analyzer.parse(word)
         if parsed[0].tag.case != 'nomn':
             word = parsed[0].normal_form
@@ -50,6 +51,8 @@ class WiktionaryAccentor:
         if word in not_stressed_variants:
             index = not_stressed_variants.index(word)
             word = self.stress_sign_to_plus(variants[index])
+        else:
+            word = original
         return self.delete_misc_symbols(word)
 
     def parse_data(self, data: List[str], output_name: Path, n_processes=4) -> None:
