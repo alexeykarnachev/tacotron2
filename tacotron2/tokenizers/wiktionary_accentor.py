@@ -11,6 +11,9 @@ import gdown
 
 _WIKTIONARY_URL = 'https://ru.wiktionary.org/wiki/Служебная:Поиск?search={}&go=Перейти'
 
+_ACCENTS_FILE_ID = '1VIKez7qneYrPU4HATT4bEOfWhr9Oq_p4'
+_GOOGLE_DRIVE_PATH = "https://drive.google.com/uc?id={}".format(_ACCENTS_FILE_ID)
+
 
 class WiktionaryAccentor:
     def __init__(self, do_lookup_in_wiki: bool, max_n_retries=2):
@@ -19,8 +22,7 @@ class WiktionaryAccentor:
 
         accents_path = Path(__file__).parent / 'data/accents.json'
         if not accents_path.is_file():
-            gdown.download("https://drive.google.com/uc?id=1qpJbZjJsJrfYxsT_5cmkqgIQ5-_yisoY",
-                           str(accents_path.absolute()))
+            gdown.download(_GOOGLE_DRIVE_PATH, str(accents_path.absolute()))
         self.word2accents = load_json(accents_path)
         self.morph_analyzer = pymorphy2.MorphAnalyzer()
 
