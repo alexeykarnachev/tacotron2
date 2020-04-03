@@ -1,4 +1,8 @@
+from typing import Any, List
+
 import torch
+
+from tacotron2 import tokenizers
 
 
 class BaseEvaluator(object):
@@ -15,7 +19,19 @@ class BaseEvaluator(object):
 
         self.device = device
 
-    def synthesize(self, text):
+    def synthesize(self, text: Any[str, List[str]]):
+        """
+        Args:
+            text: Text or phonemes input for synthesis.
+                  Text can be string, phonemes are List of string phonemes representation + punctuation.
+                  Phonemes can be used only with RussianPhonemeTokenizer.
+        Returns:
+            audio, (mel_outputs_postnet, gates, alignments)
+        """
+
+        if isinstance(text, list):
+            if self.tokenizer.__class__ is not tokenizers.RussianPhonemeTokenizer:
+                raise AttributeError("Use Phonemes representation with RussianPhonemeTokenizer only.")
 
         with torch.no_grad():
             self.encoder.eval()

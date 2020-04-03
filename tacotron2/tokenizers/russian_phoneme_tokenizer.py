@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 from string import punctuation
-from typing import List, Dict
+from typing import List, Dict, Any
 
 from russian_g2p.Grapheme2Phoneme import Grapheme2Phoneme
 from russian_g2p.modes.Phonetics import Phonetics
@@ -66,18 +66,19 @@ class RussianPhonemeTokenizer(Tokenizer):
 
         return phonemes_corpus
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: Any[str, List[str]]) -> List[int]:
         """Tokenize and encode text on phonemes-lvl
 
         :param text: str, input text
         :return: list, of phonemes ids
         """
-        text = text.lower()
-        text = replace_numbers_with_text(text, lang='ru')
-        text = clean_spaces(text)
+        if isinstance(text, str):
+            text = text.lower()
+            text = replace_numbers_with_text(text, lang='ru')
+            text = clean_spaces(text)
 
-        token_ids = self._encode(text)
-        # Hypotesis: bos\eos make training worse.
+            token_ids = self._encode(text)
+
         token_ids.insert(0, self.bos_id)
         token_ids.append(self.eos_id)
 
