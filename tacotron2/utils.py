@@ -4,7 +4,7 @@ import os
 import pickle
 import random
 from pathlib import Path
-from typing import Union, Dict, Sequence
+from typing import Union, Dict, Sequence, List
 
 import numpy as np
 import torch

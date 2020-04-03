@@ -43,6 +43,7 @@ setup(
         "aiogram==2.6.1",
         "aiohttp==3.6.2",
         "inflect==4.1.0",
+        "razdel==0.5.0",
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "dawg @ http://github.com/pytries/DAWG/tarball/master",
         "rnd_utilities @ git+https://bitbucket.org/just-ai/rnd_utilities/get/master.tar.gz",
