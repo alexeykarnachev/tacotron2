@@ -79,7 +79,7 @@ class RussianPhonemeTokenizer(Tokenizer):
 
             token_ids = self._encode(text)
         elif isinstance(text, list):
-            token_ids = text
+            token_ids = [self.token2id.get(x, self.unk_id) for x in text]
         else:
             raise AttributeError('Given text must be string or list of phonemes.')
 
