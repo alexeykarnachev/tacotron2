@@ -97,8 +97,7 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
 async def send_kb(message: types.Message):
     """This handler will be called when user sends `/start`"""
     await message.reply(
-        """Привет. Я озвучу любую отправленную мне фразу на русском языке длиной до 150 символов. 
-        Чтобы выбрать голос отправь /voices"""
+        """Привет. Я озвучу любую отправленную мне фразу на русском языке длиной до 150 символов. Чтобы выбрать голос отправь /voices"""
     )
 
 
