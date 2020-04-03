@@ -9,7 +9,6 @@ from russian_g2p.modes.Phonetics import Phonetics
 from tacotron2.tokenizers._tokenizer import Tokenizer
 from tacotron2.tokenizers._utilities import replace_numbers_with_text, clean_spaces
 
-from tacotron2.tokenizers.wiktionary_accentor import WiktionaryAccentor
 from rnd_utilities import load_json
 
 
@@ -52,7 +51,10 @@ class RussianPhonemeTokenizer(Tokenizer):
         self.word2phonemes = self._read_phonemes_corpus(Path(__file__).parent / 'data/russian_phonemes_corpus.txt')
         self.word2accents = load_json(Path(__file__).parent / 'data/accents.json')
         self.word_regexp = re.compile(r'[А-яЁё]+')
+
+        # Do we really need this?
         self.punctuation_regexp = re.compile(f'[{punctuation}]+')
+
         self.transcriptor = Grapheme2Phoneme()
 
     @staticmethod
@@ -107,7 +109,6 @@ class RussianPhonemeTokenizer(Tokenizer):
             matched_word_tokens = self.word2phonemes.get(matched_word, None)
             if matched_word_tokens is None:
                 matched_word = self.get_accent(matched_word)
-                print(matched_word)
                 matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word)
 
             try:
