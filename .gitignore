@@ -1,10 +1,12 @@
 # Custom
 /data/
+/tacotron2/tokenizers/data/accents.json
 .idea
 /configs/*
 !/configs/hparams.yaml
 /notebooks/
 /dummy/
+/experiments/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

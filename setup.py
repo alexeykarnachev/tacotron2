@@ -47,7 +47,11 @@ setup(
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "dawg @ http://github.com/pytries/DAWG/tarball/master",
         "rnd_utilities @ git+https://bitbucket.org/just-ai/rnd_utilities/get/master.tar.gz",
-        "rnd_datasets @ git+https://bitbucket.org/just-ai/rnd_datasets/get/master.tar.gz"
+        "rnd_datasets @ git+https://bitbucket.org/just-ai/rnd_datasets/get/master.tar.gz",
+        "pymorphy2==0.8",
+        "requests==2.23.0",
+        "beautifulsoup4==4.8.2",
+        "gdown"
     ],
     package_dir={'tacotron2': 'tacotron2'},
     package_data={'tacotron2': ['tokenizers/data/*']}
