@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List, Union
 
 import torch
 
@@ -19,7 +19,7 @@ class BaseEvaluator(object):
 
         self.device = device
 
-    def synthesize(self, text: Any[str, List[str]]):
+    def synthesize(self, text: Union[str, List[str]]):
         """
         Args:
             text: Text or phonemes input for synthesis.

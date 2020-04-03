@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 from string import punctuation
-from typing import List, Dict, Any
+from typing import List, Dict, Union
 
 from russian_g2p.Grapheme2Phoneme import Grapheme2Phoneme
 from russian_g2p.modes.Phonetics import Phonetics
@@ -66,7 +66,7 @@ class RussianPhonemeTokenizer(Tokenizer):
 
         return phonemes_corpus
 
-    def encode(self, text: Any[str, List[str]]) -> List[int]:
+    def encode(self, text: Union[str, List[str]]) -> List[int]:
         """Tokenize and encode text on phonemes-lvl
 
         :param text: str, input text
