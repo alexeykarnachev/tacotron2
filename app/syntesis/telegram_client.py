@@ -14,6 +14,8 @@ from pydub import AudioSegment
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from tacotron2.app.syntesis import defaults
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -97,7 +99,8 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
 async def send_kb(message: types.Message):
     """This handler will be called when user sends `/start`"""
     await message.reply(
-        """Привет. Я озвучу любую отправленную мне фразу на русском языке длиной до 150 символов. Чтобы выбрать голос отправь /voices"""
+        f"""Привет. Я озвучу любую отправленную мне фразу на русском языке длиной до {defaults.MAX_UTTERANCE_LENGTH} символов.
+\nЧтобы выбрать голос отправь /voices"""
     )
 
 
