@@ -10,9 +10,7 @@ from tacotron2.tokenizers._tokenizer import Tokenizer
 from tacotron2.tokenizers._utilities import replace_numbers_with_text, clean_spaces
 
 from tacotron2.tokenizers.wiktionary_accentor import WiktionaryAccentor
-
-
-wiki_accentor = WiktionaryAccentor()
+from rnd_utilities import load_json
 
 
 class RussianPhonemeTokenizer(Tokenizer):
@@ -52,6 +50,7 @@ class RussianPhonemeTokenizer(Tokenizer):
         assert len(self.id2token) == len(self.token2id)
 
         self.word2phonemes = self._read_phonemes_corpus(Path(__file__).parent / 'data/russian_phonemes_corpus.txt')
+        self.word2accents = load_json(Path(__file__).parent / 'data/accents.json')
         self.word_regexp = re.compile(r'[А-яЁё]+')
         self.punctuation_regexp = re.compile(f'[{punctuation}]+')
         self.transcriptor = Grapheme2Phoneme()
@@ -102,7 +101,8 @@ class RussianPhonemeTokenizer(Tokenizer):
 
             matched_word_tokens = self.word2phonemes.get(matched_word, None)
             if matched_word_tokens is None:
-                matched_word = wiki_accentor.get_accent(matched_word)
+                matched_word = self.get_accent(matched_word)
+                print(matched_word)
                 matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word)
 
             try:
@@ -124,3 +124,10 @@ class RussianPhonemeTokenizer(Tokenizer):
             if i < len(not_word_substrings_split) - 1:
                 all_ids.extend(word_ids_sequences[i])
         return all_ids
+
+    def get_accent(self, word):
+        indexes = self.word2accents.get(word, None)
+        if indexes:
+            for index in indexes:
+                word = word[:index] + '+' + word[index:]
+        return word
