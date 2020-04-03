@@ -8,7 +8,7 @@ APP_NAME = 'TTS'
 # Full text settings
 RATE = 22050
 SILENCE_DURATION = 0.3
-SILENCE_PART = np.array([0] * SILENCE_DURATION * RATE)
+SILENCE_PART = np.array([0] * int(SILENCE_DURATION * RATE))
 MAX_SINGLE_LEN = 120
 
 # View presentation and validation
