@@ -56,7 +56,7 @@ class Speak(SwaggerView):
         if len(utterance) < defaults.MAX_SINGLE_LEN:
             sentences = [utterance]
         else:
-            sentences = list(sentenize(utterance))
+            sentences = [x.text for x in list(sentenize(utterance))]
 
         # Iteratively synthesize each one:
         audio_parts = []
