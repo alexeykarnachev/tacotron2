@@ -46,7 +46,7 @@ class BaseEvaluator(object):
             if kwargs.get('denoiser_strength'):
                 denoiser_strength = kwargs.get('denoiser_strength')
             else:
-                denoiser_strength = 0.01
+                denoiser_strength = 0.03
 
             if self.denoiser:
                 audio = self.denoiser(audio, strength=denoiser_strength)[:, 0]

@@ -7,7 +7,8 @@
     "ruslan": {
       "name": "Ruslan",
       "url": "http://localhost:9282/",
-      "sampling_rate": 22050
+      "sampling_rate": 22050,
+      "denoiser_strength": 0.03
     }
   },
   "default_voice": "ruslan"

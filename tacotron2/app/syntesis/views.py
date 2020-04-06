@@ -21,8 +21,15 @@ class Speak(SwaggerView):
             "in": "body",
             "schema": schemas.SpeakRequestSchema,
             "required": True,
-            "description": "POST body of the speak-endpoint."
-        }
+            "description": "Text to be syntesized."
+        },
+        {
+            "name": "denoising_strength",
+            "in": "body",
+            "schema": schemas.SpeakRequestSchema,
+            "required": False,
+            "description": "Strength for denoising filter at postprocessing stage."
+        },
     ]
     responses = {
         200: {
@@ -47,8 +54,10 @@ class Speak(SwaggerView):
             reply = flask.jsonify(str(e))
             return reply, http.HTTPStatus.BAD_REQUEST
 
-        # get text from request:
+        # Request data parsing:
         utterance = data['utterance']
+        denoiser_strength = data.get('denoiser_strength')
+
         tmp_path = str(self.wav_folder / str(hash(utterance))) + '.wav'
         self.logger.info(f'Got utterance: {utterance}')
 
@@ -61,7 +70,7 @@ class Speak(SwaggerView):
         # Iteratively synthesize each one:
         audio_parts = []
         for sentence in sentences:
-            audio, (_, _, _) = self.evaluator.synthesize(sentence)
+            audio, (_, _, _) = self.evaluator.synthesize(sentence, denoiser_strength=denoiser_strength)
             audio_parts.append(audio.cpu().numpy().flatten())
 
         # Join all together with small-duration silence between sentences.
