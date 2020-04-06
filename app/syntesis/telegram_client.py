@@ -79,12 +79,15 @@ def _get_voices_keyboard(selected: Optional[str] = None):
 async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
     if user_id in USER_VOICES:
         user_voice = USER_VOICES[user_id]
-        voice_url = VOICES[user_voice]['url']
     else:
-        voice_url = VOICES[START_VOICE]['url']
+        user_voice = START_VOICE
+
+    voice_url = VOICES[user_voice]['url']
+    voice_denoiser_strength = VOICES[user_voice]['denoiser_strength']
 
     inp_dict = {
-        "utterance": message
+        "utterance": message,
+        'denoiser_strength': voice_denoiser_strength
     }
 
     payload = json.dumps(inp_dict)
