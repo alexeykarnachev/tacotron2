@@ -19,7 +19,7 @@ class BaseEvaluator(object):
 
         self.device = device
 
-    def synthesize(self, text: Union[str, List[str]]):
+    def synthesize(self, text: Union[str, List[str]], *args, **kwargs):
         """
         Args:
             text: Text or phonemes input for synthesis.
@@ -42,8 +42,14 @@ class BaseEvaluator(object):
 
             mel_outputs, mel_outputs_postnet, gates, alignments = self.encoder.inference(sequence)
             audio = self.vocoder.infer(mel_outputs_postnet, sigma=0.9)
+
+            if kwargs.get('denoiser_strength'):
+                denoiser_strength = kwargs.get('denoiser_strength')
+            else:
+                denoiser_strength = 0.01
+
             if self.denoiser:
-                audio = self.denoiser(audio, strength=0.01)[:, 0]
+                audio = self.denoiser(audio, strength=denoiser_strength)[:, 0]
 
             return audio, (mel_outputs_postnet, gates, alignments)
 
@@ -56,7 +62,7 @@ class EmbeddingEvaluator(BaseEvaluator):
     def __init__(self, encoder, vocoder, tokenizer, denoiser=None, device='cpu'):
         super().__init__(encoder, vocoder, tokenizer, denoiser, device)
 
-    def synthesize(self, text, embedding):
+    def synthesize(self, text, embedding, *args, **kwargs):
 
         with torch.no_grad():
             self.encoder.eval()
