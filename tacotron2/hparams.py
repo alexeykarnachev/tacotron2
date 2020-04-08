@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import yaml
 
@@ -38,6 +38,12 @@ class HParams(dict):
         super(HParams, self).__delitem__(key)
         del self.__dict__[key]
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     @classmethod
     def from_yaml(cls, file_path: Path):
 
@@ -58,3 +64,10 @@ class HParams(dict):
             dict_ = yaml.load(file, Loader=loader)
 
         return cls(dict_)
+
+
+def serialize_hparams(hparams):
+    for k, v in hparams.items():
+        if isinstance(v, PosixPath):
+            hparams[k] = str(v)
+    return hparams

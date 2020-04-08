@@ -52,6 +52,7 @@ setup(
         "russian_g2p @ http://github.com/nsu-ai/russian_g2p/tarball/master",
         "rnd_utilities @ git+https://bitbucket.org/just-ai/rnd_utilities/get/master.tar.gz",
         "rnd_datasets @ git+https://bitbucket.org/just-ai/rnd_datasets/get/master.tar.gz",
+        "pytorch-lightning @ https://github.com/alexeykarnachev/pytorch-lightning/archive/master.zip"
     ],
     package_dir={'tacotron2': 'tacotron2'},
     package_data={'tacotron2': ['tokenizers/data/*']}

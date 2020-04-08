@@ -1,81 +1,92 @@
-################################
-# Experiment Parameters        #
-################################
-epochs: 500
-iters_per_checkpoint: 1000
-seed: 228
-use_all_gpu: False
-fp16_opt_level:
-ignore_layers: ['embedding.weight']
-model_class_name: 'Tacotron2Embedded'
-device: 'cuda'
+  ################################
+  # Experiment Parameters        #
+  ################################
+  # Schedule and seed
+  epochs: 500
+  iters_per_checkpoint: 1000
+  seed: 228
+  save_top_k: 3
 
-################################
-# Data Parameters              #
-################################
-load_mel_from_disk: False
-data_directory: '../data/dummy'
-tokenizer_class_name: 'RussianPhonemeTokenizer'
+  # Gpu settings
+  fp16_opt_level:
+  gpus:
 
-# Audio preprocessors
-audio_preprocessors:
-  SilenceTrimmer:
-    top_db: 30
-  AmplitudeNormalizer:
+  # Model settings
+  ignore_layers: ['embedding.weight']
+  model_class_name: Tacotron2
 
-################################
-# Audio Parameters             #
-################################
-max_wav_value: 32768.0
-sampling_rate: 16000
-filter_length: 1024
-hop_length: 256
-win_length: 1024
-n_mel_channels: 80
-mel_fmin: 0.0
-mel_fmax: 8000.0
+  ################################
+  # Data Parameters              #
+  ################################
+  load_mel_from_disk: False
+  data_directory: /Users/egortimofeev/Documents/data/audio/dummy
+  tokenizer_class_name: RussianPhonemeTokenizer
 
-################################
-# Model Parameters             #
-################################
-symbols_embedding_dim: 512
+  # Audio preprocessors
+  audio_preprocessors:
+    SilenceTrimmer:
+      top_db: 30
+    AmplitudeNormalizer:
 
-# Encoder parameters
-encoder_kernel_size: 5
-encoder_n_convolutions: 3
-encoder_embedding_dim: 512
+  ################################
+  # Audio Parameters             #
+  ################################
+  max_wav_value: 32768.0
+  sampling_rate: 16000
+  filter_length: 1024
+  hop_length: 256
+  win_length: 1024
+  n_mel_channels: 80
+  mel_fmin: 0.0
+  mel_fmax: 8000.0
 
-# Decoder parameters
-n_frames_per_step: 1  # currently only 1 is supported
-decoder_rnn_dim: 1024
-prenet_dim: 256
-max_decoder_steps: 1000
-gate_threshold: 0.5
-p_attention_dropout: 0.1
-p_decoder_dropout: 0.1
+  ################################
+  # Model Parameters             #
+  ################################
+  symbols_embedding_dim: 512
 
-# Attention parameters
-attention_rnn_dim: 1024
-attention_dim: 128
+  # Encoder parameters
+  encoder_kernel_size: 5
+  encoder_n_convolutions: 3
+  encoder_embedding_dim: 512
 
-# Location Layer parameters
-attention_location_n_filters: 32
-attention_location_kernel_size: 31
+  # Decoder parameters
+  n_frames_per_step: 1  # currently only 1 is supported
+  decoder_rnn_dim: 1024
+  prenet_dim: 256
+  max_decoder_steps: 1000
+  gate_threshold: 0.5
+  p_attention_dropout: 0.1
+  p_decoder_dropout: 0.1
 
-# Mel-post processing network parameters
-postnet_embedding_dim: 512
-postnet_kernel_size: 5
-postnet_n_convolutions: 5
+  # Attention parameters
+  attention_rnn_dim: 1024
+  attention_dim: 128
 
-################################
-# Optimization Hyperparameters #
-################################
-learning_rate: 1e-3
-lr_reduce_patience: 5
-lr_reduce_factor: 0.25
+  # Location Layer parameters
+  attention_location_n_filters: 32
+  attention_location_kernel_size: 31
 
-weight_decay: 1e-6
-grad_clip_thresh: 1.0
-batch_size: 2
-accum_steps: 2
-mask_padding: True  # set model's padded outputs to padded values
+  # Mel-post processing network parameters
+  postnet_embedding_dim: 512
+  postnet_kernel_size: 5
+  postnet_n_convolutions: 5
+
+  ################################
+  # Optimization Hyperparameters #
+  ################################
+
+  # Learning rate
+  warmup_steps: 1000
+  learning_rate: 1e-3
+  lr_reduce_patience: 5
+  lr_reduce_factor: 0.25
+
+  # Weights
+  weight_decay: 1e-6
+  grad_clip_thresh: 1.0
+
+  # Fit settings
+  batch_size: 2
+  accum_steps: 1
+  mask_padding: true
