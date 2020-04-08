@@ -49,9 +49,14 @@ class RussianPhonemeTokenizer(Tokenizer):
         assert len(self.id2token) == len(self.token2id)
 
         self.word2phonemes = self._read_phonemes_corpus(Path(__file__).parent / 'data/russian_phonemes_corpus.txt')
-        self.word2accents = load_json(Path(__file__).parent / 'data/accents.json')
-        self.word_regexp = re.compile(r'[А-яЁё]+')
 
+        try:
+            accents_file_path = Path(__file__).parent / 'data/accents.json'
+            self.word2accents = load_json(accents_file_path)
+        except:
+            raise FileNotFoundError(f'Accents dictionary can not be found at {accents_file_path}')
+
+        self.word_regexp = re.compile(r'[А-яЁё]+')
         # Do we really need this?
         self.punctuation_regexp = re.compile(f'[{punctuation}]+')
 
