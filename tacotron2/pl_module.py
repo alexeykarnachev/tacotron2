@@ -118,22 +118,23 @@ class TacotronModule(pl.LightningModule):
             self.logger.experiment.add_histogram(tag, value.data.cpu().numpy(), iteration)
 
         # plot alignment, mel target and predicted, gate target and predicted
-        idx = np.random.randint(0, len(alignments) - 1)
+        idx_batch = np.random.randint(0, len(alignments) - 1)
+        idx_inside_batch = np.random.randint(0, self.hparams.batch_size - 1)
         self.logger.experiment.add_image(
             "alignment",
-            plot_alignment_to_numpy(alignments[idx].data.cpu().numpy().T),
+            plot_alignment_to_numpy(alignments[idx_batch][idx_inside_batch, :, :].data.cpu().numpy().T),
             iteration, dataformats='HWC')
         self.logger.experiment.add_image(
             "mel_target",
-            plot_spectrogram_to_numpy(mel_targets[idx].data.cpu().numpy()),
+            plot_spectrogram_to_numpy(mel_targets[idx_batch][idx_inside_batch, :, :].data.cpu().numpy()),
             iteration, dataformats='HWC')
         self.logger.experiment.add_image(
             "mel_predicted",
-            plot_spectrogram_to_numpy(mel_outputs[idx].data.cpu().numpy()),
+            plot_spectrogram_to_numpy(mel_outputs[idx_batch][idx_inside_batch, :, :].data.cpu().numpy()),
             iteration, dataformats='HWC')
         self.logger.experiment.add_image(
             "gate",
             plot_gate_outputs_to_numpy(
-                gate_targets[idx].data.cpu().numpy(),
-                torch.sigmoid(gate_outputs[idx]).data.cpu().numpy()),
+                gate_targets[idx_batch][idx_inside_batch].data.cpu().numpy(),
+                torch.sigmoid(gate_outputs[idx_batch][idx_inside_batch]).data.cpu().numpy()),
             iteration, dataformats='HWC')
