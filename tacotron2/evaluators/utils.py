@@ -63,9 +63,10 @@ def get_evaluator(evaluator_classname: str,
         `BaseEvaluator` instance
     """
     encoder = Factory.get_object(f"tacotron2.models.{encoder_hparams['model_class_name']}", encoder_hparams)
-    encoder.load_state_dict(
-        torch.load(encoder_checkpoint_path, map_location=device)['model_state_dict']
-    )
+    encoder_weights = torch.load(encoder_checkpoint_path, map_location=device)['model_state_dict']
+    encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
+
+    encoder.load_state_dict(encoder_weights)
     encoder.to(device)
 
     vocoder = Factory.get_object(f"waveglow.models.{vocoder_hparams['model_class_name']}", vocoder_hparams)
