@@ -53,15 +53,10 @@ class TacotronModule(pl.LightningModule):
         # Ground truth labels for all validation
         val_gt = [x['val_gt'] for x in outputs]
         mel_gt, gate_gt = list(zip(*val_gt))
-        mel_gt = torch.stack([x for x in mel_gt]).squeeze(0)
-        gate_gt = torch.stack([x for x in gate_gt]).squeeze(0)
 
         # Prediction results for all validation
         val_outputs = [x['val_outputs'] for x in outputs]
         _, mel_outputs_postnet, gate_outputs, alignments = list(zip(*val_outputs))
-        mel_outputs_postnet = torch.stack([x for x in mel_outputs_postnet]).squeeze(0)
-        gate_outputs = torch.stack([x for x in gate_outputs]).squeeze(0)
-        alignments = torch.stack([x for x in alignments]).squeeze(0)
 
         # Logging of additional validation data (alignments, gates etc).
         iteration = self.trainer.global_step
