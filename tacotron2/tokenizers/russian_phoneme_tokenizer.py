@@ -113,8 +113,9 @@ class RussianPhonemeTokenizer(Tokenizer):
 
             matched_word_tokens = self.word2phonemes.get(matched_word, None)
             if matched_word_tokens is None:
-                matched_word = self.get_accent(matched_word)
-                matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word)
+                matched_word_accented = self.get_accent(matched_word)
+                matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word_accented)
+                self.word2phonemes[matched_word] = matched_word_tokens
 
             try:
                 matched_word_ids = [self.token2id[token] for token in matched_word_tokens]
