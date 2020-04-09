@@ -71,7 +71,7 @@ def get_trainer(_args: argparse.Namespace, _hparams: HParams) -> pl.Trainer:
             'max_epochs': _hparams.epochs,
             'gpus': _hparams.gpus,
             'val_check_interval ': _hparams.iters_per_checkpoint,
-            'amp_level': _hparams.fp16_opt_level or False,
+            'amp_level': _hparams.fp16_opt_level,
             'gradient_clip_val': _hparams.grad_clip_thresh,
             'accumulate_grad_batches': _hparams.accum_steps,
             'show_progress_bar': True,
