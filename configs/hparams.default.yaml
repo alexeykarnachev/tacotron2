@@ -9,6 +9,7 @@
 
   # Gpu settings
   fp16_opt_level:
+  precision: 32
   gpus:
 
   # Model settings
