@@ -118,7 +118,7 @@ class TacotronModule(pl.LightningModule):
             self.logger.experiment.add_histogram(tag, value.data.cpu().numpy(), iteration)
 
         # plot alignment, mel target and predicted, gate target and predicted
-        idx = np.random.randint(0, alignments.size(0) - 1)
+        idx = np.random.randint(0, len(alignments) - 1)
         self.logger.experiment.add_image(
             "alignment",
             plot_alignment_to_numpy(alignments[idx].data.cpu().numpy().T),
