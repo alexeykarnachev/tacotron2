@@ -29,13 +29,13 @@ class TacotronModule(pl.LightningModule):
         pass
 
     def training_step(self, batch, batch_idx):
+
         outputs, loss = self.model(batch)
-        logs = {'Loss/Train': loss}
+        lr = self.trainer.optimizers[0].param_groups[0]['lr']
 
-        to_return = {'loss': loss, 'logs': logs}
-
+        logs = {'Loss/Train': loss, 'LearningRate': lr}
+        to_return = {'loss': loss, 'log': logs}
         if self.trainer.global_step == 0:
-            to_return['logs'].update({'Loss/Valid': np.inf})
             to_return.update({'val_loss': np.inf})
 
         return to_return
@@ -103,8 +103,17 @@ class TacotronModule(pl.LightningModule):
 
         return [optimizer], [scheduler]
 
+    def check_grad_norm(self):
+        total_norm = 0
+        for p in self.model.parameters():
+            param_norm = p.grad.data.norm(2)
+            total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** (1. / 2)
+        return total_norm
+
     def log_validation_results(self, y, y_pred, iteration):
 
+        # Outputs logging
         mel_outputs, gate_outputs, alignments = y_pred
         mel_targets, gate_targets = y
 

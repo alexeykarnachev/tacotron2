@@ -17,8 +17,15 @@ from tacotron2.hparams import HParams
 
 
 def load_yaml(path: Path):
-    with open(str(path)) as file:
+    with open(str(path), 'r') as file:
         _yaml = yaml.full_load(file)
+
+    return _yaml
+
+
+def dump_yaml(_object: dict, path: Path):
+    with open(str(path), 'w') as file:
+        _yaml = yaml.dump(_object, file)
 
     return _yaml
 

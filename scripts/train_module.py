@@ -1,14 +1,13 @@
 import argparse
 import copy
-import shutil
 from pathlib import Path
 
 import pytorch_lightning as pl
 from pytorch_lightning import loggers
-from rnd_utilities import dump_json
 from rnd_utilities.datetime_utilities import get_cur_time_str
 
-from tacotron2.hparams import HParams
+from tacotron2.app.syntesis.utilities import dump_yaml
+from tacotron2.hparams import HParams, serialize_hparams
 from tacotron2.pl_module import TacotronModule
 
 
@@ -89,12 +88,15 @@ def main():
     experiment_dir = prepare_experiment(args)
 
     hparams = HParams.from_yaml(args.hparams_file)
+    dump_yaml(
+        serialize_hparams(hparams.__dict__),
+        experiment_dir / 'hparams.yaml')
     hparams['models_dir'] = experiment_dir / 'models'
     hparams['tb_logdir'] = experiment_dir
 
-    model = TacotronModule(hparams)
+    module = TacotronModule(hparams)
     trainer = get_trainer(_args=args, _hparams=hparams)
-    trainer.fit(model)
+    trainer.fit(module)
 
 
 if __name__ == '__main__':
