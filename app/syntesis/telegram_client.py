@@ -41,7 +41,7 @@ DP = Dispatcher(BOT)
 
 VOICES = config['voices']
 DEFAULT_VOICE = '__default__'
-START_VOICE = VOICES[config['default_voice']]
+START_VOICE = config['default_voice']
 USER_VOICES = defaultdict(lambda: START_VOICE)
 
 
