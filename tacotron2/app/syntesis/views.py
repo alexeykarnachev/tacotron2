@@ -1,6 +1,8 @@
 import http
+import os
 from logging import Logger
 from pathlib import Path
+from typing import Dict
 
 import flask
 import librosa
@@ -9,6 +11,7 @@ import numpy as np
 from flasgger import SwaggerView
 from razdel import sentenize
 
+import tacotron2
 from tacotron2.app.syntesis import schemas
 from tacotron2.app.syntesis import defaults
 from tacotron2.evaluators import BaseEvaluator
@@ -90,3 +93,24 @@ class Speak(SwaggerView):
         self.logger.info('Result was constructed.')
 
         return result, http.HTTPStatus.OK
+
+
+class VersionView(SwaggerView):
+    responses = {
+        200: {"description": "OK"}
+    }
+
+    def __init__(self):
+        self._response = flask.jsonify(tacotron2.__version__)
+
+    def get(self):
+        return self._response, http.HTTPStatus.OK
+
+
+class HealthCheckView(SwaggerView):
+    responses = {
+        200: {"description": "OK"}
+    }
+
+    def get(self):
+        return 'Ok', http.HTTPStatus.OK

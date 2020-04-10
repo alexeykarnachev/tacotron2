@@ -68,6 +68,26 @@ def _add_app_routes(app, basic_auth, evaluator, wav_folder, logger):
         methods=['POST']
     )
 
+    app.add_url_rule(
+        '/version',
+        view_func=basic_auth.required(
+            views.VersionView.as_view(
+                'version'
+            )
+        ),
+        methods=['GET']
+    )
+
+    app.add_url_rule(
+        '/healthCheck',
+        view_func=basic_auth.required(
+            views.HealthCheckView.as_view(
+                'healthCheck'
+            )
+        ),
+        methods=['GET']
+    )
+
 
 def prepare_app(username: str, password: str) -> Tuple[flask.Flask, flask_basicauth.BasicAuth]:
     """Configures application.

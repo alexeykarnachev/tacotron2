@@ -11,7 +11,7 @@ class SpeakRequestSchema(marshmallow.Schema):
     """Defines generator variable (which could be posted by client) parameters."""
 
     utterance = marshmallow.fields.Str(
-        description="The higher the value is, the more diverse replies will be generated.",
+        description="Utterance to be speaked.",
         required=True, example=defaults.UTTERANCE,
         validate=_get_len_val(min=defaults.MIN_UTTERANCE_LENGTH, max=defaults.MAX_UTTERANCE_LENGTH)
     )
