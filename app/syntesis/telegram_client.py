@@ -86,7 +86,7 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
     voice_denoiser_strength = VOICES[user_voice]['denoiser_strength']
 
     inp_dict = {
-        "utterance": message + ' _',
+        "utterance": message,
         'denoiser_strength': voice_denoiser_strength
     }
 
