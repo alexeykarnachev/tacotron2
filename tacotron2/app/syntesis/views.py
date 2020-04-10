@@ -20,18 +20,11 @@ from tacotron2.evaluators import BaseEvaluator
 class Speak(SwaggerView):
     parameters = [
         {
-            "name": "utterance",
+            "name": "body",
             "in": "body",
             "schema": schemas.SpeakRequestSchema,
             "required": True,
-            "description": "Text to be syntesized."
-        },
-        {
-            "name": "denoising_strength",
-            "in": "body",
-            "schema": schemas.SpeakRequestSchema,
-            "required": False,
-            "description": "Strength for denoising filter at postprocessing stage."
+            "description": "Request input."
         },
     ]
     responses = {
