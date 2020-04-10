@@ -20,7 +20,7 @@ from tacotron2.evaluators import BaseEvaluator
 class Speak(SwaggerView):
     parameters = [
         {
-            "name": "body",
+            "name": "speak",
             "in": "body",
             "schema": schemas.SpeakRequestSchema,
             "required": True,
