@@ -103,7 +103,7 @@ async def send_kb(message: types.Message):
     """This handler will be called when user sends `/start`"""
     await message.reply(
         f"""Привет. Я озвучу любую отправленную мне фразу на русском языке длиной до {defaults.MAX_UTTERANCE_LENGTH} символов.
-\nЧтобы выбрать голос отправь /voices"""
+         \n Чтобы выбрать голос отправь /voices \n Также, если хочешь сам выставить ударения - добавь знак `+` после требуемой гласной буквы."""
     )
 
 
