@@ -1,3 +1,4 @@
+from string import punctuation
 from typing import List, Union
 
 import torch
@@ -32,6 +33,9 @@ class BaseEvaluator(object):
         if isinstance(text, list):
             if self.tokenizer.__class__ is not tokenizers.RussianPhonemeTokenizer:
                 raise AttributeError("Use Phonemes representation with RussianPhonemeTokenizer only.")
+
+        if text.strip(' ')[-1] not in punctuation:
+            text = text.strip(' ') + '.'
 
         with torch.no_grad():
             self.encoder.eval()
