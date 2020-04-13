@@ -127,7 +127,7 @@ class RussianPhonemeTokenizer(Tokenizer):
                     matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word_accented)
                 except AssertionError:
                     raise TranscriptionError(
-                        'TranscriptionError occured in word {matched_word_accented}. '
+                        f'TranscriptionError occured in word {matched_word_accented}. '
                         + 'Check correctness of accent `+` sign.')
 
                 self.word2phonemes[matched_word] = matched_word_tokens
