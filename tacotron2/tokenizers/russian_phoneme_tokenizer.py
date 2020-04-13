@@ -12,6 +12,10 @@ from tacotron2.tokenizers._utilities import replace_numbers_with_text, clean_spa
 from rnd_utilities import load_json
 
 
+class TranscriptionError(Exception):
+    pass
+
+
 class RussianPhonemeTokenizer(Tokenizer):
     """Russian phonemes-lvl tokenizer
     It uses pre-calculated phonemes dictionary. If some specific word is not in the dictionary, then the
@@ -56,7 +60,7 @@ class RussianPhonemeTokenizer(Tokenizer):
         except:
             raise FileNotFoundError(f'Accents dictionary can not be found at {accents_file_path}')
 
-        self.word_regexp = re.compile(r'[А-яЁё]+')
+        self.word_regexp = re.compile(r'[А-яЁё+]+')
         # Do we really need this?
         self.punctuation_regexp = re.compile(f'[{punctuation}]+')
 
@@ -80,7 +84,7 @@ class RussianPhonemeTokenizer(Tokenizer):
     def encode(self, text: Union[str, List[str]]) -> List[int]:
         """Tokenize and encode text on phonemes-lvl
 
-        :param text: str, input text
+        :param text: str or List[str], input text
         :return: list, of phonemes ids
         """
         if isinstance(text, str):
@@ -113,8 +117,19 @@ class RussianPhonemeTokenizer(Tokenizer):
 
             matched_word_tokens = self.word2phonemes.get(matched_word, None)
             if matched_word_tokens is None:
-                matched_word_accented = self.get_accent(matched_word)
-                matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word_accented)
+
+                if '+' not in matched_word:
+                    matched_word_accented = self.get_accent(matched_word)
+                else:
+                    matched_word_accented = matched_word
+
+                try:
+                    matched_word_tokens = self.transcriptor.word_to_phonemes(matched_word_accented)
+                except AssertionError:
+                    raise TranscriptionError(
+                        'TranscriptionError occured in word {matched_word_accented}. '
+                        + 'Check correctness of accent `+` sign.')
+
                 self.word2phonemes[matched_word] = matched_word_tokens
 
             try:
