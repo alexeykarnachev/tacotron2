@@ -96,6 +96,7 @@ class VersionView(SwaggerView):
     }
 
     def __init__(self):
+        # TODO: shall we provide more info? For example sampling rate etc.
         self._response = flask.jsonify(tacotron2.__version__)
 
     def get(self):
