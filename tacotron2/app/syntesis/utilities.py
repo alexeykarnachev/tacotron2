@@ -12,7 +12,7 @@ import flask_basicauth
 
 from tacotron2.app.syntesis import defaults
 from tacotron2.app.syntesis import views
-from tacotron2.evaluators import get_evaluator
+from tacotron2.evaluators.utils import get_evaluator
 from tacotron2.hparams import HParams
 
 
