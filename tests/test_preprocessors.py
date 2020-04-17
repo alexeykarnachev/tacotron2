@@ -23,15 +23,8 @@ def test_normalizer(min_, max_):
     corcoeff = np.corrcoef(signal_normalized, signal)
     assert corcoeff.diagonal(1)[0] >= 0.9
 
-@pytest.mark.parametrize(
-    "top_db",
-    [
-        10,
-        15,
-        30,
-        60
-    ]
-)
+
+@pytest.mark.parametrize("top_db", [10, 15, 30, 60])
 def test_trimmer(top_db):
     trimmer = preprocessors.SilenceTrimmer(top_db=top_db, frame_length=16, hop_length=8)
     signal = np.concatenate(

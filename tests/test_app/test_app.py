@@ -3,17 +3,17 @@ import json
 
 import librosa
 import numpy as np
-import razdel
 from requests import auth
 
 import tacotron2
-from tacotron2.app.syntesis.defaults import SILENCE_PART
+
 
 _HEADERS = {
     "Authorization": auth._basic_auth_str('user', 'password'),
     "content-type": "application/json"
 }
 
+# TODO: Mark parametrize
 _VERSION = tacotron2.__version__
 _UTTERANCES = [
     "Привет!",
@@ -50,4 +50,5 @@ def test_app(client):
         audio = librosa.load(io_stream)[0]
 
         assert isinstance(audio, np.ndarray)
+        # See DummyEvaluator from conftest in this root.
         assert len(audio) == len(_utterance)

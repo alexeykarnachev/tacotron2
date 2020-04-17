@@ -12,7 +12,7 @@ import tacotron2
 from tacotron2.app.syntesis import utilities, defaults
 
 
-class _Evaluator(object):
+class DummyEvaluator(object):
     def __init__(self):
         pass
 
@@ -21,16 +21,12 @@ class _Evaluator(object):
         return audio, (audio, 0, 0)
 
 
-def _get_evaluator(*args, **kwargs):
-    return _Evaluator()
-
-
 @pytest.fixture
 def client(tmp_path, monkeypatch):
 
     monkeypatch.setattr("tacotron2.app.syntesis.defaults.APP_DIR", tmp_path)
     tacotron2.app.syntesis.utilities.get_evaluator = unittest.mock.MagicMock()
-    tacotron2.app.syntesis.utilities.get_evaluator.return_value = _Evaluator()
+    tacotron2.app.syntesis.utilities.get_evaluator.return_value = DummyEvaluator()
 
     config_path = tmp_path / 'config.json'
 

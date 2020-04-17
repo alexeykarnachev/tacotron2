@@ -28,7 +28,7 @@ class DummyVocoder(object):
         return signal
 
 
-class DummyTokenizer(RussianPhonemeTokenizer):
+class DummyTokenizer(object):
     def encode(self, text):
         return [len(x) for x in text.split()]
 
