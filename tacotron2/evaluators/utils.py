@@ -4,6 +4,8 @@ import IPython.display as ipd
 import numpy as np
 import torch
 
+from rnd_utilities import get_object
+
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.evaluators import BaseEvaluator
@@ -62,8 +64,9 @@ def get_evaluator(evaluator_classname: str,
     Returns:
         `BaseEvaluator` instance
     """
-    encoder = Factory.get_object(f"tacotron2.models.{encoder_hparams['model_class_name']}", encoder_hparams)
+    encoder = get_object(f"tacotron2.models.{encoder_hparams['model_class_name']}", encoder_hparams)
 
+    # TODO: Think: is there a chance to make it more simple?
     encoder_weights = torch.load(encoder_checkpoint_path, map_location=device)
     if 'model_state_dict' in encoder_weights:
         key_weights_encoder = 'model_state_dict'
@@ -96,9 +99,9 @@ def get_evaluator(evaluator_classname: str,
     else:
         denoiser = None
 
-    tokenizer = Factory.get_object(f"tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
+    tokenizer = get_object(f"tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
 
-    evaluator = Factory.get_object(
+    evaluator = get_object(
         f"tacotron2.evaluators.{evaluator_classname}",
         encoder=encoder,
         vocoder=vocoder,

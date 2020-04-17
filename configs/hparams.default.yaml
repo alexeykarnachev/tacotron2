@@ -1,3 +1,5 @@
+  # TODO: Is it a good idea to replace hparams from yaml with something like bash-script + args?
+  #
   ################################
   # Experiment Parameters        #
   ################################

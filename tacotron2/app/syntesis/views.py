@@ -54,6 +54,8 @@ class Speak(SwaggerView):
         utterance = data['utterance']
         denoiser_strength = data.get('denoiser_strength')
 
+        # TODO: shall we use something like tempfile-library?
+        # Or solve this by little code part which deletes unused .wav data?
         tmp_path = str(self.wav_folder / str(hash(utterance))) + '.wav'
         self.logger.info(f'Got utterance: {utterance}')
 

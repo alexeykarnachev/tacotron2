@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import loggers
 from rnd_utilities.datetime_utilities import get_cur_time_str
 
-from tacotron2.app.syntesis.utilities import dump_yaml
+from tacotron2.utils import dump_yaml
 from tacotron2.hparams import HParams, serialize_hparams
 from tacotron2.pl_module import TacotronModule
 
@@ -29,6 +29,8 @@ def parse_args():
     return args
 
 
+# Now we dont have test of this train script, but when we get:
+# TODO: replace with similar function from rnd_utilities.
 def prepare_experiment(args) -> Path:
 
     experiments_dir: Path = args.experiments_dir

@@ -1,8 +1,8 @@
 import re
-from dataclasses import dataclass
 from pathlib import Path, PosixPath
 
 import yaml
+
 
 class HParams(dict):
     """
@@ -65,7 +65,7 @@ class HParams(dict):
 
         return cls(dict_)
 
-
+# TODO: change lightning version - new one solves this problem with PosixPath etc.
 def serialize_hparams(hparams):
     for k, v in hparams.items():
         if isinstance(v, PosixPath):

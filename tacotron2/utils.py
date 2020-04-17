@@ -8,9 +8,24 @@ from typing import Union, Dict, Sequence, List
 
 import numpy as np
 import torch
+import yaml
 
 from tacotron2.factory import Factory
 from tacotron2.json_encoder import CustomJSONEncoder
+
+
+def load_yaml(path: Path):
+    with open(str(path), 'r') as file:
+        _yaml = yaml.full_load(file)
+
+    return _yaml
+
+
+def dump_yaml(_object: dict, path: Path):
+    with open(str(path), 'w') as file:
+        _yaml = yaml.dump(_object, file)
+
+    return _yaml
 
 
 def get_mask_from_lengths(lengths):
