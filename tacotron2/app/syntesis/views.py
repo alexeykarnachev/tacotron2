@@ -1,6 +1,8 @@
 import http
+import os
 from logging import Logger
 from pathlib import Path
+from typing import Dict
 
 import flask
 import librosa
@@ -9,6 +11,7 @@ import numpy as np
 from flasgger import SwaggerView
 from razdel import sentenize
 
+import tacotron2
 from tacotron2.app.syntesis import schemas
 from tacotron2.app.syntesis import defaults
 from tacotron2.evaluators import BaseEvaluator
@@ -17,12 +20,12 @@ from tacotron2.evaluators import BaseEvaluator
 class Speak(SwaggerView):
     parameters = [
         {
-            "name": "utterance",
+            "name": "speak",
             "in": "body",
             "schema": schemas.SpeakRequestSchema,
             "required": True,
-            "description": "POST body of the speak-endpoint."
-        }
+            "description": "Request input."
+        },
     ]
     responses = {
         200: {
@@ -47,8 +50,12 @@ class Speak(SwaggerView):
             reply = flask.jsonify(str(e))
             return reply, http.HTTPStatus.BAD_REQUEST
 
-        # get text from request:
+        # Request data parsing:
         utterance = data['utterance']
+        denoiser_strength = data.get('denoiser_strength')
+
+        # TODO: shall we use something like tempfile-library?
+        # Or solve this by little code part which deletes unused .wav data?
         tmp_path = str(self.wav_folder / str(hash(utterance))) + '.wav'
         self.logger.info(f'Got utterance: {utterance}')
 
@@ -61,7 +68,7 @@ class Speak(SwaggerView):
         # Iteratively synthesize each one:
         audio_parts = []
         for sentence in sentences:
-            audio, (_, _, _) = self.evaluator.synthesize(sentence)
+            audio, (_, _, _) = self.evaluator.synthesize(sentence, denoiser_strength=denoiser_strength)
             audio_parts.append(audio.cpu().numpy().flatten())
 
         # Join all together with small-duration silence between sentences.
@@ -81,3 +88,25 @@ class Speak(SwaggerView):
         self.logger.info('Result was constructed.')
 
         return result, http.HTTPStatus.OK
+
+
+class VersionView(SwaggerView):
+    responses = {
+        200: {"description": "OK"}
+    }
+
+    def __init__(self):
+        # TODO: shall we provide more info? For example sampling rate etc.
+        self._response = flask.jsonify(tacotron2.__version__)
+
+    def get(self):
+        return self._response, http.HTTPStatus.OK
+
+
+class HealthCheckView(SwaggerView):
+    responses = {
+        200: {"description": "OK"}
+    }
+
+    def get(self):
+        return 'Ok', http.HTTPStatus.OK

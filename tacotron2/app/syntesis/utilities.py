@@ -1,26 +1,17 @@
 import logging
 import os
-from pathlib import Path
 from typing import Tuple
 
 import flasgger
-import rnd_utilities
-import yaml
-
 import flask
 import flask_basicauth
 
+import rnd_utilities
+
 from tacotron2.app.syntesis import defaults
 from tacotron2.app.syntesis import views
-from tacotron2.evaluators import get_evaluator
+from tacotron2.evaluators.utils import get_evaluator
 from tacotron2.hparams import HParams
-
-
-def load_yaml(path: Path):
-    with open(str(path)) as file:
-        _yaml = yaml.full_load(file)
-
-    return _yaml
 
 
 def prepare_logging() -> logging.Logger:
@@ -59,6 +50,26 @@ def _add_app_routes(app, basic_auth, evaluator, wav_folder, logger):
             )
         ),
         methods=['POST']
+    )
+
+    app.add_url_rule(
+        '/version',
+        view_func=basic_auth.required(
+            views.VersionView.as_view(
+                'version'
+            )
+        ),
+        methods=['GET']
+    )
+
+    app.add_url_rule(
+        '/healthCheck',
+        view_func=basic_auth.required(
+            views.HealthCheckView.as_view(
+                'healthCheck'
+            )
+        ),
+        methods=['GET']
     )
 
 

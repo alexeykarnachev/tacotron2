@@ -4,6 +4,8 @@ import IPython.display as ipd
 import numpy as np
 import torch
 
+from rnd_utilities import get_object
+
 from tacotron2.factory import Factory
 from tacotron2.hparams import HParams
 from tacotron2.evaluators import BaseEvaluator
@@ -62,10 +64,21 @@ def get_evaluator(evaluator_classname: str,
     Returns:
         `BaseEvaluator` instance
     """
-    encoder = Factory.get_object(f"tacotron2.models.{encoder_hparams['model_class_name']}", encoder_hparams)
-    encoder.load_state_dict(
-        torch.load(encoder_checkpoint_path, map_location=device)['model_state_dict']
-    )
+    encoder = get_object(f"tacotron2.models.{encoder_hparams['model_class_name']}", encoder_hparams)
+
+    # TODO: Think: is there a chance to make it more simple?
+    encoder_weights = torch.load(encoder_checkpoint_path, map_location=device)
+    if 'model_state_dict' in encoder_weights:
+        key_weights_encoder = 'model_state_dict'
+    elif 'state_dict' in encoder_weights:
+        key_weights_encoder = 'state_dict'
+    else:
+        raise Exception('Cannot take state dict in checkpoint file. Has to have model_state_dict or state_dict key.')
+
+    encoder_weights = encoder_weights[key_weights_encoder]
+    encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
+
+    encoder.load_state_dict(encoder_weights)
     encoder.to(device)
 
     vocoder = Factory.get_object(f"waveglow.models.{vocoder_hparams['model_class_name']}", vocoder_hparams)
@@ -86,9 +99,9 @@ def get_evaluator(evaluator_classname: str,
     else:
         denoiser = None
 
-    tokenizer = Factory.get_object(f"tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
+    tokenizer = get_object(f"tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
 
-    evaluator = Factory.get_object(
+    evaluator = get_object(
         f"tacotron2.evaluators.{evaluator_classname}",
         encoder=encoder,
         vocoder=vocoder,

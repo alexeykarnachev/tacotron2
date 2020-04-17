@@ -41,7 +41,7 @@ DP = Dispatcher(BOT)
 
 VOICES = config['voices']
 DEFAULT_VOICE = '__default__'
-START_VOICE = VOICES[config['default_voice']]
+START_VOICE = config['default_voice']
 USER_VOICES = defaultdict(lambda: START_VOICE)
 
 
@@ -79,12 +79,15 @@ def _get_voices_keyboard(selected: Optional[str] = None):
 async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
     if user_id in USER_VOICES:
         user_voice = USER_VOICES[user_id]
-        voice_url = VOICES[user_voice]['url']
     else:
-        voice_url = VOICES[START_VOICE]['url']
+        user_voice = START_VOICE
+
+    voice_url = VOICES[user_voice]['url']
+    voice_denoiser_strength = VOICES[user_voice]['denoiser_strength']
 
     inp_dict = {
-        "utterance": message
+        "utterance": message,
+        'denoiser_strength': voice_denoiser_strength
     }
 
     payload = json.dumps(inp_dict)
@@ -100,7 +103,7 @@ async def send_kb(message: types.Message):
     """This handler will be called when user sends `/start`"""
     await message.reply(
         f"""Привет. Я озвучу любую отправленную мне фразу на русском языке длиной до {defaults.MAX_UTTERANCE_LENGTH} символов.
-\nЧтобы выбрать голос отправь /voices"""
+         \n Чтобы выбрать голос отправь /voices \n Также, если хочешь сам выставить ударения - добавь знак `+` после требуемой гласной буквы."""
     )
 
 
@@ -142,7 +145,7 @@ async def send_reply(message: types.Message):
             sampling_rate=VOICES[USER_VOICES[user_id]]['sampling_rate'])
 
         with open(path_to_mp3, 'rb') as audio_file:
-            await message.answer_audio(audio=audio_file)
+            await message.answer_voice(audio_file)
     elif status == 400:
         text = json.loads(wav_basestring)
         error_message = f"Bad request: {text}"
