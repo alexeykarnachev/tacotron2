@@ -1,4 +1,5 @@
 from math import sqrt
+from typing import Dict
 
 from torch import nn
 
@@ -43,7 +44,7 @@ class Tacotron2(nn.Module):
 
         return outputs
 
-    def forward(self, inputs):
+    def forward(self, inputs: Dict):
         """
         inputs: dict{'x': (...), 'y':(...)}
         """
