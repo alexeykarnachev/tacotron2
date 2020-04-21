@@ -1,7 +1,7 @@
 from math import sqrt
-from typing import Dict
+from typing import Dict, List
 
-from torch import nn
+from torch import nn, Tensor
 
 from tacotron2.loss_function import Tacotron2Loss
 from tacotron2.models._modules import Encoder, Decoder, Postnet
@@ -65,7 +65,7 @@ class Tacotron2(nn.Module):
 
         return outputs, loss
 
-    def inference(self, inputs):
+    def inference(self, inputs: Dict[str, Tensor]):
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
         encoder_outputs = self.encoder.inference(embedded_inputs)
         mel_outputs, gate_outputs, alignments = self.decoder.inference(
@@ -78,3 +78,43 @@ class Tacotron2(nn.Module):
             [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
 
         return outputs
+
+
+class Tacotron2Jit(nn.Module):
+
+    @property
+    def device(self):
+        return self.parameters().__next__().device
+
+    def __init__(self, hparams):
+        super(Tacotron2Jit, self).__init__()
+        self.hparams = hparams
+        self.mask_padding = hparams.mask_padding
+        self.fp16_run = hparams.fp16_run
+        self.n_mel_channels = hparams.n_mel_channels
+        self.n_frames_per_step = hparams.n_frames_per_step
+        self.embedding = nn.Embedding(
+            hparams.n_symbols, hparams.symbols_embedding_dim)
+        std = sqrt(2.0 / (hparams.n_symbols + hparams.symbols_embedding_dim))
+        val = sqrt(3.0) * std  # uniform bounds for std
+        self.embedding.weight.data.uniform_(-val, val)
+        self.encoder = Encoder(hparams)
+        self.decoder = Decoder(hparams)
+        self.postnet = Postnet(hparams)
+
+    def parse_output(self, outputs: List[Tensor]):
+        return outputs
+
+    def forward(self, inputs: Tensor):
+        embedded_inputs = self.embedding(inputs).transpose(1, 2)
+        encoder_outputs = self.encoder.inference(embedded_inputs)
+        mel_outputs, gate_outputs, alignments = self.decoder.inference(encoder_outputs)
+
+        mel_outputs_postnet = self.postnet(mel_outputs)
+        mel_outputs_postnet = mel_outputs + mel_outputs_postnet
+
+        outputs = self.parse_output(
+            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
+
+        return outputs
+
