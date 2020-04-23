@@ -72,10 +72,7 @@ class Speak(SwaggerView):
                 audio, (_, _, _) = self.evaluator.synthesize(sentence, denoiser_strength=denoiser_strength)
                 audio_parts.append(audio.cpu().numpy().flatten())
             except TranscriptionError as e:
-                return jsonify(e), http.HTTPStatus.INTERNAL_SERVER_ERROR
-            else:
-                message = 'Not implemented error on evaluation stage.'
-                return jsonify(message), http.HTTPStatus.INTERNAL_SERVER_ERROR
+                return jsonify(str(e)), http.HTTPStatus.BAD_REQUEST
 
         # Join all together with small-duration silence between sentences.
         full_audio = [
