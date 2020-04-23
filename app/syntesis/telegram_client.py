@@ -95,7 +95,9 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
     async with aiohttp.ClientSession(auth=AUTH) as session:
         async with session.post(voice_url, data=payload, headers=HEADERS) as response:
             status = response.status
-            responce = await response.read()
+
+            if status == http.HTTPStatus.OK:
+                responce = await response.read()
             return responce, status
 
 
