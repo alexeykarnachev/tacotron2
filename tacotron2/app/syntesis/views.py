@@ -1,20 +1,20 @@
 import http
-import os
 from logging import Logger
 from pathlib import Path
-from typing import Dict
 
 import flask
 import librosa
 import marshmallow
 import numpy as np
 from flasgger import SwaggerView
+from flask import jsonify
 from razdel import sentenize
 
 import tacotron2
 from tacotron2.app.syntesis import schemas
 from tacotron2.app.syntesis import defaults
 from tacotron2.evaluators import BaseEvaluator
+from tacotron2.tokenizers.russian_phoneme_tokenizer import TranscriptionError
 
 
 class Speak(SwaggerView):
@@ -68,8 +68,14 @@ class Speak(SwaggerView):
         # Iteratively synthesize each one:
         audio_parts = []
         for sentence in sentences:
-            audio, (_, _, _) = self.evaluator.synthesize(sentence, denoiser_strength=denoiser_strength)
-            audio_parts.append(audio.cpu().numpy().flatten())
+            try:
+                audio, (_, _, _) = self.evaluator.synthesize(sentence, denoiser_strength=denoiser_strength)
+                audio_parts.append(audio.cpu().numpy().flatten())
+            except TranscriptionError as e:
+                return jsonify(e), http.HTTPStatus.INTERNAL_SERVER_ERROR
+            else:
+                message = 'Not implemented error on evaluation stage.'
+                return jsonify(message), http.HTTPStatus.INTERNAL_SERVER_ERROR
 
         # Join all together with small-duration silence between sentences.
         full_audio = [

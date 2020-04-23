@@ -1,3 +1,4 @@
+import http
 import io
 import argparse
 import json
@@ -94,8 +95,8 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
     async with aiohttp.ClientSession(auth=AUTH) as session:
         async with session.post(voice_url, data=payload, headers=HEADERS) as response:
             status = response.status
-            responce_bytes = await response.read()
-            return responce_bytes, status
+            responce = await response.read()
+            return responce, status
 
 
 @DP.message_handler(commands=['start'])
@@ -135,10 +136,10 @@ async def send_kb(callback_query: types.CallbackQuery):
 async def send_reply(message: types.Message):
     """Replies on user message."""
     user_id = str(message.from_user.id)
-    responce_bytes, status = await _get_reply(message=message.text, user_id=user_id)
-    wav_basestring = responce_bytes
+    responce, status = await _get_reply(message=message.text, user_id=user_id)
 
-    if status == 200:
+    if status == http.HTTPStatus.OK:
+        wav_basestring = responce
         path_to_mp3 = get_mp3_path(
             wav_basestring=wav_basestring,
             text=message.text,
@@ -146,9 +147,9 @@ async def send_reply(message: types.Message):
 
         with open(path_to_mp3, 'rb') as audio_file:
             await message.answer_voice(audio_file)
-    elif status == 400:
-        text = json.loads(wav_basestring)
-        error_message = f"Bad request: {text}"
+    elif status in (http.HTTPStatus.INTERNAL_SERVER_ERROR, http.HTTPStatus.BAD_REQUEST):
+        text = json.loads(responce)
+        error_message = f"Error occurred: {text}"
         await message.answer(error_message)
 
 
