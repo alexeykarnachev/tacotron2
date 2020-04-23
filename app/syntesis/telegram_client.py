@@ -152,7 +152,7 @@ async def send_reply(message: types.Message):
         with open(path_to_mp3, 'rb') as audio_file:
             await message.answer_voice(audio_file)
     elif status in (http.HTTPStatus.INTERNAL_SERVER_ERROR, http.HTTPStatus.BAD_REQUEST):
-        text = json.loads(responce)
+        text = responce
         error_message = f"Error occurred: {text}"
         await message.answer(error_message)
 
