@@ -98,7 +98,7 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
             if status == http.HTTPStatus.OK:
                 responce = await response.read()
             else:
-                responce = response.text()
+                responce = await response.text()
 
             return responce, status
 
