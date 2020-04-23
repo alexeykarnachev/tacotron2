@@ -52,7 +52,7 @@ class Speak(SwaggerView):
 
         # Request data parsing:
         utterance = data['utterance']
-        denoiser_strength = data.get('denoiser_strength')
+        denoiser_strength = data.get('denoiser_strength', 0.05)
 
         # TODO: shall we use something like tempfile-library?
         # Or solve this by little code part which deletes unused .wav data?
