@@ -17,7 +17,7 @@ setup(
     description='Tacotron2 TTS Model',
     packages=find_packages(exclude=['test', 'test.*']),
     install_requires=[
-        "torch==1.3.1",
+        "torch==1.4.0",
         "scikit-learn==0.21.3",
         "pandas==0.25.1",
         "future==0.17.1",
