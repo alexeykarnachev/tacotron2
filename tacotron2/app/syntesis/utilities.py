@@ -105,18 +105,13 @@ def prepare() -> flask.Flask:
     wav_folder = defaults.APP_DIR / 'wavs'
     wav_folder.mkdir(exist_ok=True, parents=True)
 
-    hparams_tacotron = HParams.from_yaml(config['encoder_hparams_path'])
-    hparams_wg = HParams.from_yaml(config['vocoder_hparams_path'])
-    hparams_tacotron.n_symbols = 152
-
     evaluator = get_evaluator(
         evaluator_classname=config['evaluator_classname'],
-        encoder_hparams=hparams_tacotron,
-        encoder_checkpoint_path=config['encoder_checkpoint_path'],
-        vocoder_hparams=hparams_wg,
-        vocoder_checkpoint_path=config['vocoder_checkpoint_path'],
+        encoder_params=config['encoder_params'],
+        vocoder_params=config['vocoder_params'],
         use_denoiser=config['use_denoiser'],
-        device=config['device'])
+        device=config['device']
+    )
 
     # Flask application
     app, basic_auth = prepare_app(config['basic_auth_username'], config['basic_auth_password'])

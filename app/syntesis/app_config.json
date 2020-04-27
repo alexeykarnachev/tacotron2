@@ -1,0 +1,18 @@
+{
+  "app_folder": "/Users/egortimofeev/Documents/projects/tacotron2/app/syntesis/tmp",
+  "evaluator_classname": "BaseEvaluator",
+  "encoder_params": {
+    "model": "Tacotron2",
+    "hparams_path": "/Users/egortimofeev/Documents/data/models/tts/ruslan_stable/hparams.yaml",
+    "checkpoint_path": "/Users/egortimofeev/Documents/data/models/tts/ruslan_stable/models/model_best.pth"
+  },
+  "vocoder_params": {
+    "model": "WaveFlow",
+    "hparams_path": "/Users/egortimofeev/Documents/data/models/tts/waveflow_models/hparams.yaml",
+    "checkpoint_path": "/Users/egortimofeev/Documents/data/models/tts/waveflow_models/model.pth"
+  },
+  "use_denoiser": true,
+  "device": "cpu",
+  "basic_auth_username": "user",
+  "basic_auth_password": "password"
+}

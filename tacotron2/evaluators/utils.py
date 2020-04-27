@@ -7,9 +7,9 @@ import torch
 from rnd_utilities import get_object
 
 from tacotron2.factory import Factory
-from tacotron2.hparams import HParams
 from tacotron2.evaluators import BaseEvaluator
-from waveglow.denoiser import Denoiser
+from tacotron2.hparams import HParams
+from tacotron2.vocoders.denoiser import Denoiser
 
 
 def plot_syntesis_result(data, figsize=(16, 4)):
@@ -44,30 +44,30 @@ def jupyter_play_syntesed(audiodata: np.array, sr: int):
 
 
 def get_evaluator(evaluator_classname: str,
-                  encoder_hparams: HParams,
-                  encoder_checkpoint_path: str,
-                  vocoder_hparams: HParams,
-                  vocoder_checkpoint_path: str,
+                  encoder_params: dict,
+                  vocoder_params: dict,
                   use_denoiser: bool = True,
                   device: str = 'cpu') -> BaseEvaluator:
     """
     Function for creation instance of Evaluator for syntesis
     Args:
         evaluator_classname: `str` class of evaluator
-        encoder_hparams: `HParams` with tacotron2 meta
-        encoder_checkpoint_path: `str` path to tacotron2 checkpoint
-        vocoder_hparams: `HParams` with waveglow meta
-        vocoder_checkpoint_path: `str` path to waveglow checkpoint
+        encoder_params: `Dict` with encoder meta (model, hparams_path, checkpoint_path)
+        vocoder_params: `Dict` with vocoder meta (model, hparams_path, checkpoint_path)
         use_denoiser: `bool` use or not postprocessing denoising
         device: `str` identifier for device to use
 
     Returns:
         `BaseEvaluator` instance
     """
-    encoder = get_object(f"tacotron2.models.{encoder_hparams['model_class_name']}", encoder_hparams)
+
+    encoder_model_class = encoder_params['model']
+    encoder_hparams = HParams.from_yaml(encoder_params['hparams_path'])
+    encoder_hparams.n_symbols = 152
+    encoder = get_object(f"tacotron2.models.{encoder_model_class}", encoder_hparams)
 
     # TODO: Think: is there a chance to make it more simple?
-    encoder_weights = torch.load(encoder_checkpoint_path, map_location=device)
+    encoder_weights = torch.load(encoder_params['checkpoint_path'], map_location=device)
     if 'model_state_dict' in encoder_weights:
         key_weights_encoder = 'model_state_dict'
     elif 'state_dict' in encoder_weights:
@@ -77,22 +77,13 @@ def get_evaluator(evaluator_classname: str,
 
     encoder_weights = encoder_weights[key_weights_encoder]
     encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
-
     encoder.load_state_dict(encoder_weights)
     encoder.to(device)
 
-    vocoder = Factory.get_object(f"waveglow.models.{vocoder_hparams['model_class_name']}", vocoder_hparams)
-    vocoder_loaded_weights = torch.load(vocoder_checkpoint_path, map_location=device)
-
-    if 'model_state_dict' in vocoder_loaded_weights:
-        vocoder.load_state_dict(
-            torch.load(vocoder_checkpoint_path, map_location=device)['model_state_dict']
-        )
-    else:
-        vocoder.load_state_dict(
-            torch.load(vocoder_checkpoint_path, map_location=device)
-        )
-    vocoder.to(device)
+    vocoder_model_class = vocoder_params['model']
+    vocoder_kwargs = {k: v for k, v in vocoder_params.items() if k != 'model'}
+    vocoder_kwargs.update({'device': device})
+    vocoder = Factory.get_object(f"tacotron2.vocoders.{vocoder_model_class}", **vocoder_kwargs)
 
     if use_denoiser:
         denoiser = Denoiser(vocoder, device=device)

@@ -28,7 +28,7 @@ def client(tmp_path, monkeypatch):
     tacotron2.app.syntesis.utilities.get_evaluator = unittest.mock.MagicMock()
     tacotron2.app.syntesis.utilities.get_evaluator.return_value = DummyEvaluator()
 
-    config_path = tmp_path / 'config.json'
+    config_path = tmp_path / 'app_config.json'
 
     hparams_encoder_path = tmp_path / "encoder_hparams_path.yaml"
     with hparams_encoder_path.open('w') as file:
