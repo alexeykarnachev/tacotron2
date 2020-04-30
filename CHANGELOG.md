@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.0.3] - 2020-04-30
+### Fixed
+- Telegram bot behavior in exception case
+- Telegram bot refactored
+
+### Added
+- Default denoising strength for payload without this parameter in application
+- User-readable exception in case of incorrect text in telegram bor
+- Waveglow denoiser modet to tacotron2 package and now is available for other vocoders
+- Vocoder module and interfaces
+
+### Updated
+- torch 1.3.1 -> 1.4.0
+
+
 ## [0.0.2] - 2020-04-17
 ### Fixed
 - Bot behavior before /start is sent.
