@@ -39,16 +39,22 @@ def client(tmp_path, monkeypatch):
         yaml.dump({"dummy": "dummy"}, file)
 
     config = {
-          "app_folder": str(tmp_path),
-          "evaluator_classname": "BaseEvaluator",
-          "encoder_hparams_path": str(hparams_encoder_path),
-          "encoder_checkpoint_path": str(tmp_path / "encoder_checkpoint_path.pth"),
-          "vocoder_hparams_path": str(hparams_vocoder_path),
-          "vocoder_checkpoint_path": str(tmp_path / "vocoder_checkpoint_path.pth"),
-          "use_denoiser": True,
-          "device": "cpu",
-          "basic_auth_username": "user",
-          "basic_auth_password": "password"
+      "app_folder": "/Users/egortimofeev/Documents/projects/tacotron2/app/syntesis/tmp",
+      "evaluator_classname": "BaseEvaluator",
+      "encoder_params": {
+            "model": "Tacotron2",
+            "hparams_path": str(hparams_encoder_path),
+            "checkpoint_path": str(tmp_path / "encoder_checkpoint_path.pth")
+        },
+      "vocoder_params": {
+            "model": "WaveGlow",
+            "hparams_path": str(hparams_vocoder_path),
+            "checkpoint_path": str(tmp_path / "vocoder_checkpoint_path.pth")
+        },
+      "use_denoiser": True,
+      "device": "cpu",
+      "basic_auth_username": "user",
+      "basic_auth_password": "password"
     }
 
     rnd_utilities.dump_json(config, config_path)

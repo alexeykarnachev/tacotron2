@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Option to set denoising strength in app request.
-- Option to use phone,es instead of text in BaseEvaluator.
+- Option to use phonemes instead of text in BaseEvaluator.
 - Full pytorch-lightning enviroment: module, train sctript, usage of lightning-checkpoint in evaluators.
 - `+` sign as an accent identificator through evaluator, application, telegram bot.
 - Now bot send not mp3-file, but voice message.

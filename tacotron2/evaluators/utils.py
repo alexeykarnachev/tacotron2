@@ -47,6 +47,7 @@ def get_evaluator(evaluator_classname: str,
                   encoder_params: dict,
                   vocoder_params: dict,
                   use_denoiser: bool = True,
+                  half=False,
                   device: str = 'cpu') -> BaseEvaluator:
     """
     Function for creation instance of Evaluator for syntesis
@@ -55,6 +56,7 @@ def get_evaluator(evaluator_classname: str,
         encoder_params: `Dict` with encoder meta (model, hparams_path, checkpoint_path)
         vocoder_params: `Dict` with vocoder meta (model, hparams_path, checkpoint_path)
         use_denoiser: `bool` use or not postprocessing denoising
+        half: `bool` parametr to set fp16 inference
         device: `str` identifier for device to use
 
     Returns:

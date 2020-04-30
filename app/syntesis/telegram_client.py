@@ -77,7 +77,8 @@ def _get_voices_keyboard(selected: Optional[str] = None):
     return keyboard
 
 
-async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
+def _get_server_payload_for_user(message):
+    user_id = str(message.from_user.id)
     if user_id in USER_VOICES:
         user_voice = USER_VOICES[user_id]
     else:
@@ -90,17 +91,35 @@ async def _get_reply(message: str, user_id: str) -> Tuple[str, str]:
         "utterance": message,
         'denoiser_strength': voice_denoiser_strength
     }
-
     payload = json.dumps(inp_dict)
-    async with aiohttp.ClientSession(auth=AUTH) as session:
-        async with session.post(voice_url, data=payload, headers=HEADERS) as response:
-            status = response.status
-            if status == http.HTTPStatus.OK:
-                responce = await response.read()
-            else:
-                responce = await response.text()
+    return payload, voice_url
 
-            return responce, status
+
+async def get_error_response_text(response):
+    if response.status == http.HTTPStatus.BAD_REQUEST:
+        response = await response.text()
+    else:
+        response = "Undefined error."
+    return response
+
+
+async def reply_using_server_response(response, message: types.Message):
+    status = response.status
+    text = message.text
+    user_id = str(message.from_user.id)
+
+    if status == http.HTTPStatus.OK:
+        response = await response.read()
+        path_to_mp3 = get_mp3_path(
+            wav_basestring=response,
+            text=text,
+            sampling_rate=VOICES[USER_VOICES[user_id]]['sampling_rate']
+        )
+        with open(path_to_mp3, 'rb') as audio_file:
+            await message.answer_voice(audio_file)
+    else:
+        error_text = get_error_response_text(response)
+        await message.answer(error_text)
 
 
 @DP.message_handler(commands=['start'])
@@ -137,24 +156,12 @@ async def send_kb(callback_query: types.CallbackQuery):
 
 
 @DP.message_handler()
-async def send_reply(message: types.Message):
+async def reply_on_message(message: types.Message):
     """Replies on user message."""
-    user_id = str(message.from_user.id)
-    responce, status = await _get_reply(message=message.text, user_id=user_id)
-
-    if status == http.HTTPStatus.OK:
-        wav_basestring = responce
-        path_to_mp3 = get_mp3_path(
-            wav_basestring=wav_basestring,
-            text=message.text,
-            sampling_rate=VOICES[USER_VOICES[user_id]]['sampling_rate'])
-
-        with open(path_to_mp3, 'rb') as audio_file:
-            await message.answer_voice(audio_file)
-    elif status in (http.HTTPStatus.INTERNAL_SERVER_ERROR, http.HTTPStatus.BAD_REQUEST):
-        text = responce
-        error_message = f"Error occurred: {text}"
-        await message.answer(error_message)
+    payload, url = _get_server_payload_for_user(message)
+    async with aiohttp.ClientSession(auth=AUTH) as session:
+        async with session.post(url, data=payload, headers=HEADERS) as server_response:
+            await reply_using_server_response(server_response, message)
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ class Denoiser(torch.nn.Module):
     def __init__(self, vocoder, filter_length=1024, n_overlap=4,
                  win_length=1024, mode='zeros', device='cpu'):
 
+        # TODO: decompose (moce bias calculation to vocoder)
         super(Denoiser, self).__init__()
         self.device = device
 

@@ -10,7 +10,7 @@ args = parser.parse_args()
 
 
 if __name__ == '__main__':
-    accents_path = Path(__file__).parent.parent / 'tacotron2/tokenizers/data/accents.json'
+    accents_path = Path(__file__).parent.parent / 'tokenizers/data/accents.json'
 
     if not accents_path.is_file():
         gdown.download(_GOOGLE_DRIVE_PATH.format(args.file_id), str(accents_path.absolute()))
