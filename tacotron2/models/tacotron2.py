@@ -121,9 +121,6 @@ class Tacotron2KD(nn.Module):
         self.kd_loss = MaskedMSELoss()
         self.kd_loss_lambda = kd_loss_lambda
 
-        for param in self.backbone.encoder.parameters():
-            param.requires_grad = False
-
     def decode(self, encoder_outputs, mels, text_lengths):
         with torch.no_grad():
             mel_outputs, gate_outputs, alignments = \
