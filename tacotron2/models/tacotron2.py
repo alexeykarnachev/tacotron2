@@ -157,12 +157,12 @@ class Tacotron2KD(nn.Module):
             [mel_outputs_student, mel_outputs_postnet_student, gate_outputs_student, alignments_student],
             output_lengths
         )
-        loss_mel = self.backbone.criterion(outputs_student, inputs['y'], output_lengths) \
-                   + self.backbone.criterion(outputs, inputs['y'], output_lengths)
+        loss_mel_student = self.backbone.criterion(outputs_student, inputs['y'], output_lengths)
+        loss_mel_teacher = self.backbone.criterion(outputs, inputs['y'], output_lengths)
         loss_kd = self.kd_loss(outputs_student[0], mel_outputs, output_lengths)
-        loss = loss_mel + self.kd_loss_lambda * loss_kd
+        loss = loss_mel_student + loss_mel_teacher + self.kd_loss_lambda * loss_kd
 
-        return outputs_student, loss, loss_mel, loss_kd
+        return outputs_student, loss, loss_mel_student, loss_mel_teacher, loss_kd
 
     def inference(self, inputs):
         embedded_inputs = self.backbone.embedding(inputs).transpose(1, 2)

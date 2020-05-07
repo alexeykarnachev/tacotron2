@@ -150,30 +150,31 @@ class TacotronModuleKD(TacotronModule):
         self._train_dataloader, self._valid_dataloader = prepare_dataloaders(self.hparams)
         self.backbone: Tacotron2 = Factory.get_class(f'tacotron2.models.{hparams.model_class_name}')(hparams)
 
-        # TODO: load weights incapsulate
-        weights = torch.load(hparams['teacher_checkpoint'], map_location='cpu')
-        if 'model_state_dict' in weights:
-            key_weights_encoder = 'model_state_dict'
-        elif 'state_dict' in weights:
-            key_weights_encoder = 'state_dict'
-        else:
-            raise Exception(
-                'Cannot take state dict in checkpoint file. Has to have model_state_dict or state_dict key.')
-
-        encoder_weights = weights[key_weights_encoder]
-        encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
-        self.backbone.load_state_dict(encoder_weights)
+        # # TODO: load weights incapsulate
+        # weights = torch.load(hparams['teacher_checkpoint'], map_location='cpu')
+        # if 'model_state_dict' in weights:
+        #     key_weights_encoder = 'model_state_dict'
+        # elif 'state_dict' in weights:
+        #     key_weights_encoder = 'state_dict'
+        # else:
+        #     raise Exception(
+        #         'Cannot take state dict in checkpoint file. Has to have model_state_dict or state_dict key.')
+        #
+        # encoder_weights = weights[key_weights_encoder]
+        # encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
+        # self.backbone.load_state_dict(encoder_weights)
 
         self.model = Tacotron2KD(self.backbone, self.hparams.get('kd_loss_lambda', 1.))
         self.hparams = serialize_hparams(hparams)
 
     def training_step(self, batch, batch_idx):
-        outputs, loss, loss_mel, loss_kd = self.model(batch)
+        outputs, loss, loss_mel_student, loss_mel_teacher, loss_kd = self.model(batch)
         lr = self.trainer.optimizers[0].param_groups[-1]['lr']
 
         logs = {
             'LossOverall/Train': loss,
-            'LossMel/Train': loss_mel,
+            'LossMelTeacher/Train': loss_mel_teacher,
+            'LossMelStudent/Train': loss_mel_student,
             'LossKD/Train': loss_kd,
             'LearningRate': lr
         }
@@ -184,11 +185,12 @@ class TacotronModuleKD(TacotronModule):
         return to_return
 
     def validation_step(self, batch, batch_idx):
-        outputs, loss, loss_mel, loss_kd = self.model(batch)
+        outputs, loss, loss_mel_student, loss_mel_teacher, loss_kd = self.model(batch)
         val_gt = batch['y']
         to_return = {
             'val_loss': loss,
-            'val_mel_loss': loss_mel,
+            'val_mel_teacher_loss': loss_mel_teacher,
+            'val_mel_student_loss': loss_mel_student,
             'val_kd_loss': loss_kd,
             'val_gt': val_gt,
             'val_outputs': outputs
@@ -198,11 +200,13 @@ class TacotronModuleKD(TacotronModule):
     def validation_epoch_end(self, outputs):
         # Loss to be minimized
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-        avg_loss_mel = torch.stack([x['val_mel_loss'] for x in outputs]).mean()
+        avg_loss_mel_teacher = torch.stack([x['val_mel_teacher_loss'] for x in outputs]).mean()
+        avg_loss_mel_student = torch.stack([x['val_mel_student_loss'] for x in outputs]).mean()
         avg_loss_kd = torch.stack([x['val_kd_loss'] for x in outputs]).mean()
         logs = {
             'Loss/Valid': avg_loss,
-            'LossMel/Valid': avg_loss_mel,
+            'LossMelTeacher/Valid': avg_loss_mel_teacher,
+            'LossMelStudent/Valid': avg_loss_mel_student,
             'LossKD/Valid': avg_loss_kd
         }
 
