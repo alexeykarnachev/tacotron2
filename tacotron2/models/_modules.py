@@ -421,7 +421,7 @@ class Decoder(nn.Module):
 
         return mel_outputs, gate_outputs, alignments
 
-    def inference(self, memory, memory_lengths=None):
+    def inference(self, memory):
         """ Decoder inference
         PARAMS
         ------
@@ -434,8 +434,7 @@ class Decoder(nn.Module):
         alignments: sequence of attention weights from the decoder
         """
         decoder_input = self.get_go_frame(memory)
-        mask = ~get_mask_from_lengths(memory_lengths) if memory_lengths else None
-        self.initialize_decoder_states(memory, mask=mask)
+        self.initialize_decoder_states(memory)
 
         mel_outputs, gate_outputs, alignments = [], [], []
         while True:
@@ -456,5 +455,8 @@ class Decoder(nn.Module):
 
         mel_outputs, gate_outputs, alignments = self.parse_decoder_outputs(
             mel_outputs, gate_outputs, alignments)
+        print(f'Mel outputs has {torch.isnan(mel_outputs).sum()} nans and {(~torch.isfinite(mel_outputs)).sum()} infs')
+        print(f'Gate outputs has {torch.isnan(gate_outputs).sum()} nans and {(~torch.isfinite(gate_outputs)).sum()} infs')
+        print(f'Alignments has {torch.isnan(alignments).sum()} nans and {(~torch.isfinite(alignments)).sum()} infs')
 
         return mel_outputs, gate_outputs, alignments
