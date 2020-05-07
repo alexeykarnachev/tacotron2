@@ -151,7 +151,7 @@ class TacotronModuleKD(TacotronModule):
         self.backbone: Tacotron2 = Factory.get_class(f'tacotron2.models.{hparams.model_class_name}')(hparams)
 
         # TODO: load weights incapsulate
-        weights = torch.load(hparams['checkpoint_path'])
+        weights = torch.load(hparams['teacher_checkpoint'])
         if 'model_state_dict' in weights:
             key_weights_encoder = 'model_state_dict'
         elif 'state_dict' in weights:

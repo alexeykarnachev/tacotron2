@@ -99,6 +99,7 @@ def main():
         experiment_dir / 'hparams.yaml')
     hparams['models_dir'] = experiment_dir / 'models'
     hparams['tb_logdir'] = experiment_dir
+    hparams['teacher_checkpoint'] = args.teacher_checkpoint
 
     module = TacotronModuleKD(hparams)
     trainer = get_trainer(_args=args, _hparams=hparams)
