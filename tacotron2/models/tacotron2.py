@@ -43,20 +43,22 @@ class Tacotron2(nn.Module):
             mask = mask.permute(1, 0, 2)
 
             output_len = outputs[0].size(2)
+            pad_range = mask_len - min(output_len, mask_len)
+
             outputs[0] = outputs[0][:, :, :mask_len]
-            outputs[0] = torch.nn.functional.pad(outputs[0], pad=(0, mask_len - output_len), value=0.0)
+            outputs[0] = torch.nn.functional.pad(outputs[0], pad=(0, pad_range), value=0.0)
             outputs[0].data.masked_fill_(mask, 0.0)
 
             outputs[1] = outputs[1][:, :, :mask_len]
-            outputs[1] = torch.nn.functional.pad(outputs[1], pad=(0, mask_len - output_len), value=0.0)
+            outputs[1] = torch.nn.functional.pad(outputs[1], pad=(0, pad_range), value=0.0)
             outputs[1].data.masked_fill_(mask, 0.0)
 
             outputs[2] = outputs[2][:, :mask_len]
-            outputs[2] = torch.nn.functional.pad(outputs[2], pad=(0, mask_len - output_len), value=0.0)
+            outputs[2] = torch.nn.functional.pad(outputs[2], pad=(0, pad_range), value=0.0)
             outputs[2].data.masked_fill_(mask[:, 0, :], 1e3)  # gate energies
 
             outputs[3] = outputs[3][:, :mask_len]
-            outputs[3] = torch.nn.functional.pad(outputs[3], pad=(0, mask_len - output_len), value=0.0)
+            outputs[3] = torch.nn.functional.pad(outputs[3], pad=(0, pad_range), value=0.0)
 
         return outputs
 
@@ -146,12 +148,16 @@ class Tacotron2KD(nn.Module):
         mel_outputs_postnet_student = mel_outputs_student + mel_outputs_postnet_student
 
         # TODO: Dataclass of decoder output
+        mel_outputs, _, gate_outputs, alignments = self.backbone.parse_output(
+            [mel_outputs, mel_outputs, gate_outputs, alignments],
+            output_lengths
+        )
         outputs_student = self.backbone.parse_output(
             [mel_outputs_student, mel_outputs_postnet_student, gate_outputs_student, alignments_student],
             output_lengths
         )
         loss_mel = self.backbone.criterion(outputs_student, inputs['y'], output_lengths)
-        loss_kd = self.kd_loss(mel_outputs_student, mel_outputs, output_lengths)
+        loss_kd = self.kd_loss(outputs_student[0], mel_outputs, output_lengths)
         loss = loss_mel + self.kd_loss_lambda * loss_kd
 
         return outputs_student, loss, loss_mel, loss_kd

@@ -23,7 +23,7 @@ class Tacotron2Loss(nn.Module):
         gate_target = gate_target.reshape(-1, 1)
 
         mel_out, mel_out_postnet, gate_out, _ = model_output
-        gate_out = gate_out.view(-1, 1)
+        gate_out = gate_out.reshape(-1, 1)
         mel_loss = self.custom_mse(mel_out, mel_target, output_lengths) + \
                    self.custom_mse(mel_out_postnet, mel_target, output_lengths)
         gate_loss = nn.BCEWithLogitsLoss()(gate_out, gate_target)
