@@ -437,7 +437,7 @@ class Decoder(nn.Module):
         self.initialize_decoder_states(memory, mask=None)
 
         mel_outputs, gate_outputs, alignments = [], [], []
-        done = torch.ones(decoder_input.size(0), 1).bool()
+        done = torch.ones(decoder_input.size(0), 1).bool().to(memory.device)
         while True:
             decoder_input = self.prenet(decoder_input)
             mel_output, gate_output, alignment = self.decode(decoder_input)
