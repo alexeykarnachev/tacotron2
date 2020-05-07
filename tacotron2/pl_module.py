@@ -144,7 +144,7 @@ class TacotronModule(pl.LightningModule):
 
 class TacotronModuleKD(TacotronModule):
     def __init__(self, hparams: Union[dict, argparse.Namespace]):
-        super(TacotronModuleKD, self).__init__()
+        super(TacotronModuleKD, self).__init__(hparams)
         self.hparams = hparams
 
         self._train_dataloader, self._valid_dataloader = prepare_dataloaders(self.hparams)
