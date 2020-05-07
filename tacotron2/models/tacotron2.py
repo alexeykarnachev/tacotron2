@@ -122,9 +122,8 @@ class Tacotron2KD(nn.Module):
         self.kd_loss_lambda = kd_loss_lambda
 
     def decode(self, encoder_outputs, mels, text_lengths):
-        with torch.no_grad():
-            mel_outputs, gate_outputs, alignments = \
-                self.backbone.decode(encoder_outputs, mels, text_lengths)
+        mel_outputs, gate_outputs, alignments = \
+            self.backbone.decode(encoder_outputs, mels, text_lengths)
         mel_outputs_student, gate_outputs_student, alignments_student = \
             self.student_decoder.inference(encoder_outputs)
         gate_outputs_student = gate_outputs_student.squeeze(2)
@@ -135,8 +134,7 @@ class Tacotron2KD(nn.Module):
         text_inputs, text_lengths, mels, max_len, output_lengths = inputs['x']
         text_lengths, output_lengths = text_lengths.data, output_lengths.data
 
-        with torch.no_grad():
-            encoder_outputs = self.backbone.encode(text_inputs, text_lengths)
+        encoder_outputs = self.backbone.encode(text_inputs, text_lengths)
 
         (mel_outputs, gate_outputs, alignments), \
         (mel_outputs_student, gate_outputs_student, alignments_student) = self.decode(
