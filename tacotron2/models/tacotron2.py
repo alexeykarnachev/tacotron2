@@ -143,7 +143,7 @@ class Tacotron2KD(nn.Module):
             encoder_outputs, mels, text_lengths)
 
         mel_outputs_postnet = self.backbone.postnet(mel_outputs)
-        mel_outputs_postnet = mel_outputs_student + mel_outputs_postnet
+        mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
         mel_outputs_postnet_student = self.backbone.postnet(mel_outputs_student)
         mel_outputs_postnet_student = mel_outputs_student + mel_outputs_postnet_student
