@@ -109,14 +109,14 @@ class Tacotron2KD(nn.Module):
         super().__init__()
 
         self.backbone = backbone
-        for param in self.backbone.embedding.parameters():
-            param.requires_grad = False
-        for param in self.backbone.encoder.parameters():
-            param.requires_grad = False
+        # for param in self.backbone.embedding.parameters():
+        #     param.requires_grad = False
+        # for param in self.backbone.encoder.parameters():
+        #     param.requires_grad = False
 
         self.student_decoder = deepcopy(self.backbone.decoder)
-        for param in self.backbone.decoder.parameters():
-            param.requires_grad = False
+        # for param in self.backbone.decoder.parameters():
+        #     param.requires_grad = False
 
         self.kd_loss = MaskedMSELoss()
         self.kd_loss_lambda = kd_loss_lambda
@@ -141,19 +141,24 @@ class Tacotron2KD(nn.Module):
         (mel_outputs, gate_outputs, alignments), \
         (mel_outputs_student, gate_outputs_student, alignments_student) = self.decode(
             encoder_outputs, mels, text_lengths)
+
+        mel_outputs_postnet = self.backbone.postnet(mel_outputs)
+        mel_outputs_postnet = mel_outputs_student + mel_outputs_postnet
+
         mel_outputs_postnet_student = self.backbone.postnet(mel_outputs_student)
         mel_outputs_postnet_student = mel_outputs_student + mel_outputs_postnet_student
 
         # TODO: Dataclass of decoder output
-        mel_outputs, _, gate_outputs, alignments = self.backbone.parse_output(
-            [mel_outputs, mel_outputs, gate_outputs, alignments],
+        outputs = self.backbone.parse_output(
+            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments],
             output_lengths
         )
         outputs_student = self.backbone.parse_output(
             [mel_outputs_student, mel_outputs_postnet_student, gate_outputs_student, alignments_student],
             output_lengths
         )
-        loss_mel = self.backbone.criterion(outputs_student, inputs['y'], output_lengths)
+        loss_mel = self.backbone.criterion(outputs_student, inputs['y'], output_lengths) \
+                   + self.backbone.criterion(outputs, inputs['y'], output_lengths)
         loss_kd = self.kd_loss(outputs_student[0], mel_outputs, output_lengths)
         loss = loss_mel + self.kd_loss_lambda * loss_kd
 
