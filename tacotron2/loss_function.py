@@ -18,9 +18,9 @@ class Tacotron2Loss(nn.Module):
 
     def forward(self, model_output, targets, output_lengths):
         mel_target, gate_target = targets[0], targets[1]
-        mel_target.requires_grad = False
-        gate_target.requires_grad = False
-        gate_target = gate_target.view(-1, 1)
+        # mel_target.requires_grad = False
+        # gate_target.requires_grad = False
+        gate_target = gate_target.reshape(-1, 1)
 
         mel_out, mel_out_postnet, gate_out, _ = model_output
         gate_out = gate_out.view(-1, 1)

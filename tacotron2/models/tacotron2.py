@@ -1,8 +1,10 @@
 from math import sqrt
+from copy import deepcopy
 
+import torch
 from torch import nn
 
-from tacotron2.loss_function import Tacotron2Loss
+from tacotron2.loss_function import Tacotron2Loss, MaskedMSELoss
 from tacotron2.models._modules import Encoder, Decoder, Postnet
 from tacotron2.utils import get_mask_from_lengths
 
@@ -32,16 +34,41 @@ class Tacotron2(nn.Module):
         self.criterion = Tacotron2Loss()
 
     def parse_output(self, outputs, output_lengths=None):
+        # Todo: move to loss fn?
         if self.mask_padding and output_lengths is not None:
             mask = ~get_mask_from_lengths(output_lengths)
-            mask = mask.expand(self.n_mel_channels, mask.size(0), mask.size(1))
+
+            mask_len = mask.size(1)
+            mask = mask.expand(self.n_mel_channels, mask.size(0), mask_len)
             mask = mask.permute(1, 0, 2)
 
+            output_len = outputs[0].size(2)
+            outputs[0] = outputs[0][:, :, :mask_len]
+            outputs[0] = torch.nn.functional.pad(outputs[0], pad=(0, mask_len - output_len), value=0.0)
             outputs[0].data.masked_fill_(mask, 0.0)
+
+            outputs[1] = outputs[1][:, :, :mask_len]
+            outputs[1] = torch.nn.functional.pad(outputs[1], pad=(0, mask_len - output_len), value=0.0)
             outputs[1].data.masked_fill_(mask, 0.0)
+
+            outputs[2] = outputs[2][:, :mask_len]
+            outputs[2] = torch.nn.functional.pad(outputs[2], pad=(0, mask_len - output_len), value=0.0)
             outputs[2].data.masked_fill_(mask[:, 0, :], 1e3)  # gate energies
 
+            outputs[3] = outputs[3][:, :mask_len]
+            outputs[3] = torch.nn.functional.pad(outputs[3], pad=(0, mask_len - output_len), value=0.0)
+
         return outputs
+
+    def encode(self, text_inputs, text_lengths):
+        embedded_inputs = self.embedding(text_inputs).transpose(1, 2)
+        encoder_outputs = self.encoder(embedded_inputs, text_lengths)
+        return encoder_outputs
+
+    def decode(self, encoder_outputs, mels, text_lengths):
+        mel_outputs, gate_outputs, alignments = self.decoder(
+            encoder_outputs, mels, memory_lengths=text_lengths)
+        return mel_outputs, gate_outputs, alignments
 
     def forward(self, inputs):
         """
@@ -50,12 +77,8 @@ class Tacotron2(nn.Module):
         text_inputs, text_lengths, mels, max_len, output_lengths = inputs['x']
         text_lengths, output_lengths = text_lengths.data, output_lengths.data
 
-        embedded_inputs = self.embedding(text_inputs).transpose(1, 2)
-
-        encoder_outputs = self.encoder(embedded_inputs, text_lengths)
-        mel_outputs, gate_outputs, alignments = self.decoder(
-            encoder_outputs, mels, memory_lengths=text_lengths)
-
+        encoder_outputs = self.encode(text_inputs, text_lengths)
+        mel_outputs, gate_outputs, alignments = self.decode(encoder_outputs, mels, text_lengths)
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
@@ -74,6 +97,75 @@ class Tacotron2(nn.Module):
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
         outputs = self.parse_output(
+            [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
+
+        return outputs
+
+
+class Tacotron2KD(nn.Module):
+    def __init__(self, backbone: Tacotron2, kd_loss_lambda: int):
+        super().__init__()
+
+        self.backbone = backbone
+        for param in self.backbone.embedding.parameters():
+            param.requires_grad = False
+        for param in self.backbone.encoder.parameters():
+            param.requires_grad = False
+
+        self.student_decoder = deepcopy(self.backbone.decoder)
+        for param in self.backbone.decoder.parameters():
+            param.requires_grad = False
+
+        self.kd_loss = MaskedMSELoss()
+        self.kd_loss_lambda = kd_loss_lambda
+
+        for param in self.backbone.encoder.parameters():
+            param.requires_grad = False
+
+    def decode(self, encoder_outputs, mels, text_lengths):
+        with torch.no_grad():
+            mel_outputs, gate_outputs, alignments = \
+                self.backbone.decode(encoder_outputs, mels, text_lengths)
+        mel_outputs_student, gate_outputs_student, alignments_student = \
+            self.student_decoder.inference(encoder_outputs)
+        gate_outputs_student = gate_outputs_student.squeeze(2)
+        return (mel_outputs, gate_outputs, alignments), \
+               (mel_outputs_student, gate_outputs_student, alignments_student)
+
+    def forward(self, inputs):
+        text_inputs, text_lengths, mels, max_len, output_lengths = inputs['x']
+        text_lengths, output_lengths = text_lengths.data, output_lengths.data
+
+        with torch.no_grad():
+            encoder_outputs = self.backbone.encode(text_inputs, text_lengths)
+
+        (mel_outputs, gate_outputs, alignments), \
+        (mel_outputs_student, gate_outputs_student, alignments_student) = self.decode(
+            encoder_outputs, mels, text_lengths)
+        mel_outputs_postnet_student = self.backbone.postnet(mel_outputs_student)
+        mel_outputs_postnet_student = mel_outputs_student + mel_outputs_postnet_student
+
+        # TODO: Dataclass of decoder output
+        outputs_student = self.backbone.parse_output(
+            [mel_outputs_student, mel_outputs_postnet_student, gate_outputs_student, alignments_student],
+            output_lengths
+        )
+        loss_mel = self.backbone.criterion(outputs_student, inputs['y'], output_lengths)
+        loss_kd = self.kd_loss(mel_outputs_student, mel_outputs, output_lengths)
+        loss = loss_mel + self.kd_loss_lambda * loss_kd
+
+        return outputs_student, loss, loss_mel, loss_kd
+
+    def inference(self, inputs):
+        embedded_inputs = self.backbone.embedding(inputs).transpose(1, 2)
+        encoder_outputs = self.backbone.encoder.inference(embedded_inputs)
+        mel_outputs, gate_outputs, alignments = self.student_decoder.inference(encoder_outputs)
+
+        mel_outputs_postnet = self.backbone.postnet(mel_outputs)
+        mel_outputs_postnet = mel_outputs + mel_outputs_postnet
+
+        # TODO: we dont need this
+        outputs = self.backbone.parse_output(
             [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
 
         return outputs
