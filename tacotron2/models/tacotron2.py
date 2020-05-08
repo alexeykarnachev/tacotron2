@@ -109,23 +109,16 @@ class Tacotron2KD(nn.Module):
         super().__init__()
 
         self.backbone = backbone
-        # for param in self.backbone.embedding.parameters():
-        #     param.requires_grad = False
-        # for param in self.backbone.encoder.parameters():
-        #     param.requires_grad = False
 
         self.student_decoder = deepcopy(self.backbone.decoder)
-        # for param in self.backbone.decoder.parameters():
-        #     param.requires_grad = False
-
         self.kd_loss = MaskedMSELoss()
         self.kd_loss_lambda = kd_loss_lambda
 
-    def decode(self, encoder_outputs, mels, text_lengths):
+    def decode(self, encoder_outputs, mels, text_lengths, output_lengths=None):
         mel_outputs, gate_outputs, alignments = \
             self.backbone.decode(encoder_outputs, mels, text_lengths)
         mel_outputs_student, gate_outputs_student, alignments_student = \
-            self.student_decoder.inference(encoder_outputs)
+            self.student_decoder.inference(encoder_outputs, output_lengths)
         gate_outputs_student = gate_outputs_student.squeeze(2)
         return (mel_outputs, gate_outputs, alignments), \
                (mel_outputs_student, gate_outputs_student, alignments_student)
@@ -138,7 +131,7 @@ class Tacotron2KD(nn.Module):
 
         (mel_outputs, gate_outputs, alignments), \
         (mel_outputs_student, gate_outputs_student, alignments_student) = self.decode(
-            encoder_outputs, mels, text_lengths)
+            encoder_outputs, mels, text_lengths, output_lengths)
 
         mel_outputs_postnet = self.backbone.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet

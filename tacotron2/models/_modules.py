@@ -421,7 +421,7 @@ class Decoder(nn.Module):
 
         return mel_outputs, gate_outputs, alignments
 
-    def inference(self, memory):
+    def inference(self, memory, memory_lengths=None):
         """ Decoder inference
         PARAMS
         ------
@@ -433,12 +433,14 @@ class Decoder(nn.Module):
         gate_outputs: gate outputs from the decoder
         alignments: sequence of attention weights from the decoder
         """
+        max_len = self.max_decoder_steps if memory_lengths is None else memory_lengths
+
         decoder_input = self.get_go_frame(memory)
         self.initialize_decoder_states(memory, mask=None)
 
         mel_outputs, gate_outputs, alignments = [], [], []
         done = torch.ones(decoder_input.size(0), 1).bool().to(memory.device)
-        while True:
+        while len(mel_outputs) < max_len:
             decoder_input = self.prenet(decoder_input)
             mel_output, gate_output, alignment = self.decode(decoder_input)
 
@@ -457,8 +459,5 @@ class Decoder(nn.Module):
 
         mel_outputs, gate_outputs, alignments = self.parse_decoder_outputs(
             mel_outputs, gate_outputs, alignments)
-        print(f'Mel outputs has {torch.isnan(mel_outputs).sum()} nans and {(~torch.isfinite(mel_outputs)).sum()} infs')
-        print(f'Gate outputs has {torch.isnan(gate_outputs).sum()} nans and {(~torch.isfinite(gate_outputs)).sum()} infs')
-        print(f'Alignments has {torch.isnan(alignments).sum()} nans and {(~torch.isfinite(alignments)).sum()} infs')
 
         return mel_outputs, gate_outputs, alignments
