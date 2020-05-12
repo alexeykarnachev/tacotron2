@@ -115,7 +115,10 @@ class Tacotron2KD(nn.Module):
             param.requires_grad = False
 
         self.student_decoder = deepcopy(self.backbone.decoder)
+        self.student_postnet = deepcopy(self.backbone.postnet)
         for param in self.backbone.decoder.parameters():
+            param.requires_grad = False
+        for param in self.backbone.postnet.parameters():
             param.requires_grad = False
 
         self.kd_loss = MaskedMSELoss()
@@ -142,10 +145,11 @@ class Tacotron2KD(nn.Module):
         (mel_outputs_student, gate_outputs_student, alignments_student) = self.decode(
             encoder_outputs, mels, text_lengths, output_lengths)
 
-        mel_outputs_postnet = self.backbone.postnet(mel_outputs)
-        mel_outputs_postnet = mel_outputs + mel_outputs_postnet
+        with torch.no_grad():
+            mel_outputs_postnet = self.backbone.postnet(mel_outputs)
+            mel_outputs_postnet = mel_outputs + mel_outputs_postnet
 
-        mel_outputs_postnet_student = self.backbone.postnet(mel_outputs_student)
+        mel_outputs_postnet_student = self.student_postnet(mel_outputs_student)
         mel_outputs_postnet_student = mel_outputs_student + mel_outputs_postnet_student
 
         # TODO: Dataclass of decoder output
