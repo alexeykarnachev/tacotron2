@@ -46,7 +46,7 @@ class TacotronModule(pl.LightningModule):
         epoch_num = self.trainer.current_epoch
         if 'free_running_rate' in self.hparams:
             if str(epoch_num) in self.hparams['free_running_rate']:
-                self.model.decoder.free_running_rate = self.hparams['free_running_rate']['epoch_num']
+                self.model.decoder.free_running_rate = self.hparams['free_running_rate'][str(epoch_num)]
 
         return {'log': {'FreeRunningRate': self.model.decoder.free_running_rate}}
 
