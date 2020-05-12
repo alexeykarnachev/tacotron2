@@ -151,18 +151,18 @@ class TacotronModuleKD(TacotronModule):
         self.backbone: Tacotron2 = Factory.get_class(f'tacotron2.models.{hparams.model_class_name}')(hparams)
 
         # # TODO: load weights incapsulate
-        # weights = torch.load(hparams['teacher_checkpoint'], map_location='cpu')
-        # if 'model_state_dict' in weights:
-        #     key_weights_encoder = 'model_state_dict'
-        # elif 'state_dict' in weights:
-        #     key_weights_encoder = 'state_dict'
-        # else:
-        #     raise Exception(
-        #         'Cannot take state dict in checkpoint file. Has to have model_state_dict or state_dict key.')
-        #
-        # encoder_weights = weights[key_weights_encoder]
-        # encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
-        # self.backbone.load_state_dict(encoder_weights)
+        weights = torch.load(hparams['teacher_checkpoint'], map_location='cpu')
+        if 'model_state_dict' in weights:
+            key_weights_encoder = 'model_state_dict'
+        elif 'state_dict' in weights:
+            key_weights_encoder = 'state_dict'
+        else:
+            raise Exception(
+                'Cannot take state dict in checkpoint file. Has to have model_state_dict or state_dict key.')
+
+        encoder_weights = weights[key_weights_encoder]
+        encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
+        self.backbone.load_state_dict(encoder_weights)
 
         self.model = Tacotron2KD(self.backbone, self.hparams.get('kd_loss_lambda', 1.))
         self.hparams = serialize_hparams(hparams)
