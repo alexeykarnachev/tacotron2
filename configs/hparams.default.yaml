@@ -61,6 +61,11 @@
   gate_threshold: 0.5
   p_attention_dropout: 0.1
   p_decoder_dropout: 0.1
+  free_running_rate:
+    default: 0.1
+    10: 0.2
+    50: 0.3
+    100: 0.5
 
   # Attention parameters
   attention_rnn_dim: 1024

@@ -19,7 +19,6 @@ from tacotron2.utils import prepare_dataloaders
 class TacotronModule(pl.LightningModule):
     def __init__(self, hparams: Union[dict, argparse.Namespace]):
         super(TacotronModule, self).__init__()
-
         self.hparams = hparams
 
         self._train_dataloader, self._valid_dataloader = prepare_dataloaders(self.hparams)
@@ -41,6 +40,15 @@ class TacotronModule(pl.LightningModule):
             to_return.update({'val_loss': np.inf})
 
         return to_return
+
+    def training_epoch_end(self, outputs):
+        # Free running `dropout`
+        epoch_num = self.trainer.current_epoch
+        if 'free_running_rate' in self.hparams:
+            if epoch_num in self.hparams['free_running_rate']:
+                self.model.decoder.free_running_rate = self.hparams['free_running_rate']['epoch_num']
+
+        return {'log': {'FreeRunningRate': self.model.decoder.free_running_rate}}
 
     def validation_step(self, batch, batch_idx):
         outputs, loss = self.model(batch)
