@@ -48,7 +48,7 @@ class TacotronModule(pl.LightningModule):
             if epoch_num in self.hparams['free_running_rate']:
                 self.model.decoder.free_running_rate = self.hparams['free_running_rate']['epoch_num']
 
-        return {'log': {'FreeRunningRate': self.model.decoder.free_running_rate}}
+        return {'log': {'FreeRunningRate': str(self.model.decoder.free_running_rate)}}
 
     def validation_step(self, batch, batch_idx):
         outputs, loss = self.model(batch)
