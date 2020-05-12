@@ -164,7 +164,7 @@ class TacotronModuleKD(TacotronModule):
         encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
         self.backbone.load_state_dict(encoder_weights)
 
-        self.model = Tacotron2KD(self.backbone, self.hparams.get('kd_loss_lambda', 1.))
+        self.model = Tacotron2KD(self.backbone, self.hparams.get('kd_loss_lambda', 0.))
         self.hparams = serialize_hparams(hparams)
 
     def training_step(self, batch, batch_idx):
