@@ -2,10 +2,12 @@ from math import sqrt
 from copy import deepcopy
 
 import torch
+from rnd_utilities import get_object
 from torch import nn
 
 from tacotron2.loss_function import Tacotron2Loss, MaskedMSELoss
 from tacotron2.models._modules import Encoder, Decoder, Postnet
+from tacotron2.models.data_model import Tacotron2Output
 from tacotron2.utils import get_mask_from_lengths
 
 
@@ -32,6 +34,25 @@ class Tacotron2(nn.Module):
         self.postnet = Postnet(hparams)
 
         self.criterion = Tacotron2Loss()
+
+        self._tokenizer = None
+
+    @property
+    def device(self):
+        return next(self.parameters()).device
+
+    @property
+    def tokenizer(self):
+        if self._tokenizer is None:
+            self._tokenizer = get_object(
+                f"tacotron2.tokenizers.{self.hparams['tokenizer_class_name']}"
+            )
+        return self._tokenizer
+
+    def encode_text(self, text) -> Tacotron2Output:
+        text_tensor = torch.tensor(self.tokenizer.encode(text)).long()\
+            .unsqueeze(0).to(self.device)
+        return self.inference(text_tensor)
 
     def parse_output(self, outputs, output_lengths=None):
         # Todo: move to loss fn?
@@ -89,7 +110,7 @@ class Tacotron2(nn.Module):
 
         return outputs, loss
 
-    def inference(self, inputs):
+    def inference(self, inputs) -> Tacotron2Output:
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
         encoder_outputs = self.encoder.inference(embedded_inputs)
         mel_outputs, gate_outputs, alignments = self.decoder.inference(
@@ -101,6 +122,7 @@ class Tacotron2(nn.Module):
         outputs = self.parse_output(
             [mel_outputs, mel_outputs_postnet, gate_outputs, alignments])
 
+        outputs = Tacotron2Output(*outputs)
         return outputs
 
 

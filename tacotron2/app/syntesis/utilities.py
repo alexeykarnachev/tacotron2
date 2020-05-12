@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Tuple
 
 import flasgger
@@ -10,8 +11,10 @@ import rnd_utilities
 
 from tacotron2.app.syntesis import defaults
 from tacotron2.app.syntesis import views
-from tacotron2.evaluators.utils import get_evaluator
+from tacotron2.evaluators import BaseEvaluator
+from tacotron2.evaluators.utils import get_evaluator, get_encoder_from_checkpoint
 from tacotron2.hparams import HParams
+from tacotron2.vocoder_interfaces._vocoder import Vocoder
 
 
 def prepare_logging() -> logging.Logger:
@@ -105,12 +108,18 @@ def prepare() -> flask.Flask:
     wav_folder = defaults.APP_DIR / 'wavs'
     wav_folder.mkdir(exist_ok=True, parents=True)
 
-    evaluator = get_evaluator(
-        evaluator_classname=config['evaluator_classname'],
-        encoder_params=config['encoder_params'],
-        vocoder_params=config['vocoder_params'],
-        use_denoiser=config['use_denoiser'],
-        device=config['device']
+    # evaluator = get_evaluator(
+    #     evaluator_classname=config['evaluator_classname'],
+    #     encoder_params=config['encoder_params'],
+    #     vocoder_params=config['vocoder_params'],
+    #     use_denoiser=config['use_denoiser'],
+    #     device=config['device']
+    # )
+    encoder = get_encoder_from_checkpoint(ckpt_path=encoder_ckpt_path, device=device)
+    vocoder = get_vocoder_from_checkpoint(ckpt_path=vocoder_ckpt_path, device=device)
+    evaluator = BaseEvaluator(
+        encoder=encoder,
+        vocoder=vocoder,
     )
 
     # Flask application

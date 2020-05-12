@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 from tacotron2.utils import load_yaml
-from tacotron2.vocoders._vocoder import Vocoder
+from tacotron2.vocoder_interfaces._vocoder import Vocoder
 from waveflow.model import WaveFlow as WaveFlowModel
 
 

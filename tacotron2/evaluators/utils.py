@@ -1,3 +1,6 @@
+from collections import Mapping
+from pathlib import Path
+
 import matplotlib.pylab as plt
 
 import IPython.display as ipd
@@ -6,10 +9,10 @@ import torch
 
 from rnd_utilities import get_object
 
-from tacotron2.factory import Factory
 from tacotron2.evaluators import BaseEvaluator
 from tacotron2.hparams import HParams
-from tacotron2.vocoders.denoiser import Denoiser
+from tacotron2.vocoder_interfaces._vocoder import Vocoder
+from tacotron2.vocoder_interfaces.denoiser import Denoiser
 
 
 def plot_syntesis_result(data, figsize=(16, 4)):
@@ -43,63 +46,70 @@ def jupyter_play_syntesed(audiodata: np.array, sr: int):
     ipd.Audio(audiodata[0].data.cpu().numpy(), rate=sr)
 
 
+def get_vocoder(vocoder_params, device) -> Vocoder:
+    vocoder_model_class = vocoder_params['model']
+    vocoder_kwargs = {k: v for k, v in vocoder_params.items() if k != 'model'}
+    vocoder_kwargs.update({'device': device})
+    vocoder = get_object(f"tacotron2.vocoders.{vocoder_model_class}", **vocoder_kwargs)
+    return vocoder
+
+
+def clean_parameter_names(weights: Mapping) -> Mapping:
+    return {k.split('model.')[-1]: v for k, v in weights.items()}
+
+
+def get_model_from_checkpoint(ckpt_path, package_path, device):
+    ckpt = torch.load(ckpt_path, map_location='cpu')
+
+    weights = ckpt['state_dict']
+    weights = clean_parameter_names(weights)
+    weights = {k.split('model.')[-1]: v for k, v in weights.items()}
+
+    hparams_raw = ckpt['hparams']
+    hparams = HParams(hparams_raw)
+
+    model = get_object(
+        f"{package_path}.{hparams.model_class_name}",
+        hparams=hparams
+    )
+    model.load_state_dict(weights)
+    model.to(device)
+    return model
+
+
+def get_encoder_from_checkpoint(ckpt_path, device):
+    return get_model_from_checkpoint(ckpt_path, 'tacotron2.models', device)
+
+
+def get_vocoder_from_checkpoint(ckpt_path, device):
+    return get_model_from_checkpoint(ckpt_path, 'tacotron2.vocoder_interfaces', device)
+
+
 def get_evaluator(evaluator_classname: str,
-                  encoder_params: dict,
-                  vocoder_params: dict,
-                  use_denoiser: bool = True,
-                  half=False,
-                  device: str = 'cpu') -> BaseEvaluator:
+                  encoder_ckpt_path: Path,
+                  vocoder_ckpt_path: Path,
+                  device: str = 'cpu'
+) -> BaseEvaluator:
     """
     Function for creation instance of Evaluator for syntesis
     Args:
+        vocoder_ckpt_path:
+        encoder_ckpt_path:
         evaluator_classname: `str` class of evaluator
-        encoder_params: `Dict` with encoder meta (model, hparams_path, checkpoint_path)
-        vocoder_params: `Dict` with vocoder meta (model, hparams_path, checkpoint_path)
-        use_denoiser: `bool` use or not postprocessing denoising
-        half: `bool` parametr to set fp16 inference
         device: `str` identifier for device to use
 
     Returns:
         `BaseEvaluator` instance
     """
 
-    encoder_model_class = encoder_params['model']
-    encoder_hparams = HParams.from_yaml(encoder_params['hparams_path'])
-    encoder_hparams.n_symbols = 152
-    encoder = get_object(f"tacotron2.models.{encoder_model_class}", encoder_hparams)
-
-    # TODO: Think: is there a chance to make it more simple?
-    encoder_weights = torch.load(encoder_params['checkpoint_path'], map_location=device)
-    if 'model_state_dict' in encoder_weights:
-        key_weights_encoder = 'model_state_dict'
-    elif 'state_dict' in encoder_weights:
-        key_weights_encoder = 'state_dict'
-    else:
-        raise Exception('Cannot take state dict in checkpoint file. Has to have model_state_dict or state_dict key.')
-
-    encoder_weights = encoder_weights[key_weights_encoder]
-    encoder_weights = {k.split('model.')[-1]: v for k, v in encoder_weights.items()}
-    encoder.load_state_dict(encoder_weights)
-    encoder.to(device)
-
-    vocoder_model_class = vocoder_params['model']
-    vocoder_kwargs = {k: v for k, v in vocoder_params.items() if k != 'model'}
-    vocoder_kwargs.update({'device': device})
-    vocoder = Factory.get_object(f"tacotron2.vocoders.{vocoder_model_class}", **vocoder_kwargs)
-
-    if use_denoiser:
-        denoiser = Denoiser(vocoder, device=device)
-    else:
-        denoiser = None
-
-    tokenizer = get_object(f"tacotron2.tokenizers.{encoder_hparams['tokenizer_class_name']}")
+    encoder = get_encoder_from_checkpoint(encoder_ckpt_path, device)
+    vocoder = get_vocoder_from_checkpoint(vocoder_ckpt_path, device)
 
     evaluator = get_object(
         f"tacotron2.evaluators.{evaluator_classname}",
         encoder=encoder,
         vocoder=vocoder,
-        tokenizer=tokenizer,
-        denoiser=denoiser,
-        device=device)
+        device=device
+    )
 
     return evaluator

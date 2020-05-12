@@ -1,0 +1,2 @@
+from tacotron2.vocoder_interfaces.waveglow_interface import WaveGlow
+#from tacotron2.vocoder_interfaces.waveflow import WaveFlow
