@@ -129,7 +129,7 @@ class Tacotron2KD(nn.Module):
         mel_outputs, gate_outputs, alignments = \
             self.backbone.decode(encoder_outputs, mels, text_lengths)
         mel_outputs_student, gate_outputs_student, alignments_student = \
-            self.student_decoder.inference(encoder_outputs, output_lengths)
+            self.student_decoder.inference(encoder_outputs, output_lengths, text_lengths)
         gate_outputs_student = gate_outputs_student.squeeze(2)
         return (mel_outputs, gate_outputs, alignments), \
                (mel_outputs_student, gate_outputs_student, alignments_student)

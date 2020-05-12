@@ -421,7 +421,7 @@ class Decoder(nn.Module):
 
         return mel_outputs, gate_outputs, alignments
 
-    def inference(self, memory, memory_lengths=None):
+    def inference(self, memory, memory_lengths=None, text_length=None):
         """ Decoder inference
         PARAMS
         ------
@@ -434,8 +434,9 @@ class Decoder(nn.Module):
         alignments: sequence of attention weights from the decoder
         """
         max_len = self.max_decoder_steps if memory_lengths is None else memory_lengths.max()
-        mask = ~get_mask_from_lengths(memory_lengths) if memory_lengths is not None else None
+        mask = ~get_mask_from_lengths(text_length) if text_length is not None else None
         decoder_input = self.get_go_frame(memory)
+
         self.initialize_decoder_states(memory, mask=mask)
 
         mel_outputs, gate_outputs, alignments = [], [], []
