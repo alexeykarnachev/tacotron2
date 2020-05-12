@@ -418,7 +418,7 @@ class Decoder(nn.Module):
         iteration = 0
         while len(mel_outputs) < decoder_inputs.size(0) - 1:
             if (np.random.rand() <= self.free_running_rate) and (iteration >= 1):
-                decoder_input = mel_output
+                decoder_input = self.prenet(mel_output)
             else:
                 decoder_input = decoder_inputs[len(mel_outputs)]
             mel_output, gate_output, attention_weights = self.decode(
