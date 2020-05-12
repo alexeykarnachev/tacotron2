@@ -434,7 +434,6 @@ class Decoder(nn.Module):
         alignments: sequence of attention weights from the decoder
         """
         max_len = self.max_decoder_steps if memory_lengths is None else memory_lengths.max()
-
         decoder_input = self.get_go_frame(memory)
         self.initialize_decoder_states(memory, mask=None)
 
