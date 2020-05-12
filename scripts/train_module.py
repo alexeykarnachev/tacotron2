@@ -10,6 +10,9 @@ from tacotron2.utils import dump_yaml
 from tacotron2.hparams import HParams, serialize_hparams
 from tacotron2.pl_module import TacotronModule
 
+from warnings import filterwarnings
+filterwarnings('ignore')
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Run Tacotron experiment')
